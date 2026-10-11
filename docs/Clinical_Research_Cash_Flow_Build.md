@@ -172,10 +172,22 @@ v0.8 has a fixed-capacity, formula-driven timeline at `Main_Dashboard` G21:BO56:
 
 ### Current status
 
-Automatic selected-project testing has passed for budget, actuals, projects and manpower. The dashboard timeline design is approved at spec v1.0, but **the workbook build has not started**. Promotion of the selected-test queries over the original outputs is deferred until after the dashboard build and UAT.
+Automatic selected-project testing has passed for budget, actuals, projects and manpower. The dashboard timeline design is approved at spec v1.0, and v0.9_working was built on 11 Oct 2026, but **it opens with an Excel repair that removes the manpower query table (queryTable9)**. UAT is on hold until it's fixed (see the incident below). Promotion of the selected-test queries over the original outputs is deferred until after the dashboard build and UAT.
 
 ### Next phase
 
 1. ~~Create `v0.9_working` from v0.8; housekeeping; new sheets; legacy move; KPI repointing; VBA modules.~~ Done 11 Oct 2026, untested in Excel.
 2. The user imports the VBA, runs `Setup_Dashboard_v09`, and works through `tests/UAT_test_script.md` (the 15 acceptance tests, spec §13). Fix what fails.
 3. Then promote the selected-test queries one at a time, with KPI, timeline and cross-project regression testing; complete wider UAT and multi-user SharePoint testing; delete `Legacy_Timeline` after sign-off.
+
+### Incident (11 October 2026): queryTable9 removed when v0.9 opens
+
+- **Symptom:** desktop Excel repaired the workbook on open: `Removed Part: /xl/queryTables/queryTable9.xml part. (External data range)`.
+- **Cause (preliminary):**
+  - the build renamed sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest` without updating the hidden defined name `ExternalData_3`, which still points at the old sheet;
+  - the table rename `qManpower_SelectedTest` → `tblManpowerSelectedTest` also left the Power Query `FillTarget` on the old name.
+- **Contributing:**
+  - the packaged workbook had been re-saved by Excel iOS;
+  - the verifier exempted the renamed part and didn't check defined names.
+- **Impact:** in the repaired copy the manpower table no longer refreshes. Don't use it. v0.8 is unaffected.
+- **Fix (next session):** drop the XML rename (or redo it fully), harden the verifier, rebuild, and repackage the exact build output with a hash. Details: `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`.

@@ -2,9 +2,32 @@
 
 **From session:** 11 October 2026 (design discovery → spec approval)
 **Where:** `main` branch of `zkaiiii04/clinical-research-cashflow` (renamed from `wardrobe-atlas` on 11 Oct 2026; GitHub redirects the old name). Design work was merged in PR #1; the unrelated Wardrobe Atlas page was removed in PR #2.
-**Status:** spec **v1.0 approved**. **v0.9_working built on 11 Oct 2026** (second session). The VBA is written but **not yet compiled or run in Excel**. The next step is the user's desktop-Excel UAT (`tests/UAT_test_script.md`). See §9.
+**Status:** spec **v1.0 approved**. v0.9_working built 11 Oct 2026, but **it fails to open cleanly in desktop Excel**: Excel repairs it by removing `queryTable9.xml` (the manpower query table). **Fix this first:** see §0 and `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. UAT is on hold.
 
 ---
+
+## 0. START HERE: open issue, v0.9 repair error (11 Oct 2026)
+
+When the user opened the v0.9 package workbook from SharePoint in desktop Excel, Excel said it had to repair it and logged: `Removed Part: /xl/queryTables/queryTable9.xml part. (External data range)`. Full analysis: **`docs/incidents/2026-10-11-v0.9-querytable9-repair.md`**.
+
+**Preliminary root cause:**
+1. **Definite:** the build renamed the sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest` but left the hidden defined name `ExternalData_3` pointing at `PQManpower_SelectedTest!$A$1:$R$13`, a sheet that no longer exists. Excel can't place the query table and removes it. A clean rebuild with `build/build_v09_working.py` reproduces this.
+2. **Likely:** the Power Query metadata still has `FillTarget = qManpower_SelectedTest`, while the table was renamed to `tblManpowerSelectedTest` by an XML edit.
+3. **Contributing:** the `.xlsm` in `release/CashFlow_v0.9_package.zip` was re-saved by **Excel iOS** before it was zipped, so it isn't the verified build output. The verifier also exempted the renamed table and didn't check defined names, so it reported PASS on a broken file.
+
+**Do this first in the next session:**
+1. Ask the user:
+   - not to save the repaired copy (and whether AutoSave already wrote it to SharePoint);
+   - to upload v0.8 again;
+   - whether they're happy to **keep the v0.8 names** (`qManpower_SelectedTest` / `PQManpower_SelectedTest`). This is recommended. They can rename later in the Excel UI, which keeps the links in step.
+2. Remove the table/sheet rename from `build/build_v09_working.py`, and revert it in `vba/`, `build/compare_pq.py`, `tests/grid_model.py`, `CLAUDE.md` and the docs. Or, only if the user insists on the new names, also rewrite `ExternalData_3` and patch the DataMashup `FillTarget` (riskier).
+3. Harden `build/verify_v09_working.py`:
+   - defined-name sheet references must exist;
+   - query-table ↔ table ↔ DataMashup `FillTarget` must agree;
+   - no exemptions.
+4. Rebuild from v0.8, verify, and repackage **the exact build output**, with a SHA-256 in `README_FIRST.txt`. Replace `release/CashFlow_v0.9_package.zip` (the current one is bad; don't hand it out).
+5. Tell the user to open it **only in desktop Excel for Windows**, with no phone, tablet or web Excel before the macros are installed. Then resume UAT (§9).
+
 
 ## 1. Read these first, in this order
 
@@ -91,7 +114,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 
 ## 8. Suggested opening message for the next chat
 
-> Continue the Clinical Research Cash Flow dashboard work in this repo (main branch). Read `HANDOVER.md`, `CLAUDE.md` and the approved spec in `specs/`. I've uploaded the v0.8 workbook. Start the build in v0.9_working following the handover build plan.
+> Continue the Clinical Research Cash Flow dashboard work in this repo (main branch). Read `HANDOVER.md` (start at §0), `CLAUDE.md` and `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. I've uploaded the v0.8 workbook. Fix the queryTable9 repair error, rebuild v0.9_working and give me a clean package.
 
 ## 9. Build session (11 Oct 2026): what was done and what's next
 
@@ -109,7 +132,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
   2. Fix what fails. Re-run `tests/grid_model.py` if the grid logic changes, and keep it in step with `modTimeline.bas`.
   3. For test 13, run `python3 -I build/compare_pq.py <v0.8> <user's saved v0.9>`.
   4. After UAT: promote the selected-test queries one at a time (CLAUDE.md business rules), then delete `Legacy_Timeline`.
-- **Renamed at the user's request:** the manpower table `qManpower_SelectedTest` → `tblManpowerSelectedTest`, and its sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest`. The query keeps its name. `compare_pq.py` knows about the rename.
+- **Renamed at the user's request:** the manpower table `qManpower_SelectedTest` → `tblManpowerSelectedTest`, and its sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest`. The query keeps its name. `compare_pq.py` knows about the rename. **This rename caused the queryTable9 repair error (§0); it's to be reverted or redone properly.**
 - **Gotchas:**
   - The `.bas` files must stay ASCII with CRLF line endings. Unicode labels use `ChrW()`.
   - ThisWorkbook code has to be pasted, not imported.

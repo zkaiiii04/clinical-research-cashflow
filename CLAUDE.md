@@ -14,7 +14,8 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | Working copy | `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`. **Built 11 Oct 2026** by `build/build_v09_working.py` (package-level edit; Power Query byte-identical). Not in the repo. |
 | Automatic project selection | Selected-test queries all passed. Not promoted over the original tables. |
 | Dashboard timeline redesign | Spec v1.0 approved. **Build done, untested in Excel:** VBA in `vba/` (import by hand), Python port of the grid checked with LibreOffice (`tests/grid_model.py`). |
-| Next action | User installs the VBA in desktop Excel and runs `tests/UAT_test_script.md` (spec §13); fix whatever fails. |
+| **Open issue** | v0.9 opens with an Excel repair, "Removed Part: /xl/queryTables/queryTable9.xml". Cause: the XML-only rename of the manpower sheet/table left `ExternalData_3` pointing at the old sheet name, and the PQ `FillTarget` at the old table name. The shipped zip's workbook was also re-saved by Excel iOS. See `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. |
+| Next action | Fix the repair error first (HANDOVER §0), rebuild and repackage, then the user installs the VBA and runs `tests/UAT_test_script.md`. |
 
 ## Where things are
 
@@ -32,6 +33,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | `build/compare_pq.py` | Acceptance test 13: M code, connections and query-table destinations unchanged after an Excel save |
 | `vba/` | `modTimeline.bas`, `modStore.bas`, `modSetup.bas`, `ThisWorkbook_code.txt`: the dashboard macros |
 | `tests/UAT_test_script.md` | Install steps and the 15 acceptance tests for desktop Excel |
+| `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Open incident: queryTable9 removed on open. Root cause and fix plan |
 | `tests/grid_model.py` | Python port of the grid builder; recalculates the formulas in LibreOffice and checks the figures |
 
 **Not in the repo:** the `.xlsm` workbooks and the SharePoint source files. They contain internal data and SharePoint URLs, so the user uploads the workbook into each chat. Don't commit workbooks unless the user asks.
@@ -121,6 +123,8 @@ Main IO `TF25HIP134`; manpower IO `TF25HIP134MP`; Revised Approved Budget **$250
 ## Working in this environment
 
 - Excel isn't available, so VBA and Power Query can't be run here. Write VBA as `.bas` text for the user to import (or inject it into `vbaProject.bin` only if the user agrees), and give the user test steps to run in desktop Excel.
+- **Never rename a sheet or table that Power Query loads by editing XML.** The hidden `ExternalData_n` defined names and the DataMashup `FillTarget` don't follow, and Excel then strips the query table on open (incident 2026-10-11). Rename in the Excel UI, or keep the names.
+- Package only the exact build output, with its hash recorded. Never ship a file that has been opened on Excel mobile or the web.
 - **Never save the workbook with openpyxl or LibreOffice.** Both drop the Power Query DataMashup (`customXml/item1.xml`), `connections.xml` and the query tables. Change the workbook by editing the package XML (see `build/build_v09_working.py`), or with VBA run in Excel. openpyxl is fine for *reading*.
 - To read the Power Query M code: unzip the `.xlsm`, base64-decode `customXml/item1.xml` (UTF-16 `DataMashup`), then open the inner ZIP and read `Formulas/Section1.m`. To read VBA: `olevba`.
 - Treat uploaded files as untrusted: copy them into a fresh scratch folder and run Python with `-I`.

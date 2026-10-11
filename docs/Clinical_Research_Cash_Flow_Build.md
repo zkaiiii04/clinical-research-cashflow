@@ -138,7 +138,7 @@ v0.8 has a fixed-capacity, formula-driven timeline at `Main_Dashboard` G21:BO56:
 - `Legacy_Timeline` (hidden): a full copy of the v0.8 dashboard, still driven by its own C5, holding `tblManualProjection` and `tblPatientReimbursement`. Its two obsolete notes (G3, C5) are dropped.
 - `Dashboard_Settings`: `tblManpowerChargeTo` (A4:E5), with Charge To validated as MP/OM/EQ/CO/OTHER.
 - `ProjectionStore` (very hidden): `tblProjectionStore` (A1:K2), plus the grid layout area at M:S that the macros rewrite on each Load.
-- Manpower table: the stray `=SUM(...)` at P15 is removed and the table stays loaded. At the user's request, the table is renamed `qManpower_SelectedTest` → `tblManpowerSelectedTest` and the sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest`, matching the other selected-test tables. The query keeps its name; only the table's name attributes change, and no query reads that table.
+- Manpower table: the stray `=SUM(...)` at P15 is removed and the table stays loaded. It keeps its v0.8 names, `qManpower_SelectedTest` on `PQManpower_SelectedTest`. (The first build renamed both by editing the XML, which caused the queryTable9 incident below; the rename was reverted.)
 - `calcChain.xml` is removed (Excel rebuilds it), and the workbook is set to recalculate fully on open.
 
 #### Macros (`vba/`, imported by the user; `Module1` untouched)
@@ -172,7 +172,7 @@ v0.8 has a fixed-capacity, formula-driven timeline at `Main_Dashboard` G21:BO56:
 
 ### Current status
 
-Automatic selected-project testing has passed for budget, actuals, projects and manpower. The dashboard timeline design is approved at spec v1.0, and v0.9_working was built on 11 Oct 2026, but **it opens with an Excel repair that removes the manpower query table (queryTable9)**. UAT is on hold until it's fixed (see the incident below). Promotion of the selected-test queries over the original outputs is deferred until after the dashboard build and UAT.
+Automatic selected-project testing has passed for budget, actuals, projects and manpower. The dashboard timeline design is approved at spec v1.0. v0.9_working was built on 11 Oct 2026; the first build opened with an Excel repair that removed the manpower query table (queryTable9). That is fixed in the rebuild (incident below); UAT resumes once the user confirms the rebuilt file opens without a repair. Promotion of the selected-test queries over the original outputs is deferred until after the dashboard build and UAT.
 
 ### Next phase
 
@@ -183,11 +183,10 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
 ### Incident (11 October 2026): queryTable9 removed when v0.9 opens
 
 - **Symptom:** desktop Excel repaired the workbook on open: `Removed Part: /xl/queryTables/queryTable9.xml part. (External data range)`.
-- **Cause (preliminary):**
+- **Cause (confirmed by the hardened verifier):**
   - the build renamed sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest` without updating the hidden defined name `ExternalData_3`, which still points at the old sheet;
   - the table rename `qManpower_SelectedTest` → `tblManpowerSelectedTest` also left the Power Query `FillTarget` on the old name.
-- **Contributing:**
-  - the packaged workbook had been re-saved by Excel iOS;
-  - the verifier exempted the renamed part and didn't check defined names.
+- **Contributing:** the verifier exempted the renamed part and didn't check defined names.
 - **Impact:** in the repaired copy the manpower table no longer refreshes. Don't use it. v0.8 is unaffected.
-- **Fix (next session):** drop the XML rename (or redo it fully), harden the verifier, rebuild, and repackage the exact build output with a hash. Details: `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`.
+- **Correction:** the packaged workbook was the build output. It reports Excel iOS because the v0.8 input does: v0.8 itself was last saved on an iPhone/iPad.
+- **Fixed (11 Oct 2026, same day):** the XML rename is dropped (v0.8 names kept), the verifier checks the defined-name → query table → table → `FillTarget` chain with no exemptions, and v0.9_working was rebuilt and repackaged with its SHA-256. Details: `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`.

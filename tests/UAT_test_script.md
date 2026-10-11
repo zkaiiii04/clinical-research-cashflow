@@ -13,7 +13,7 @@ Don't open or save the workbook in LibreOffice or Google Sheets. A LibreOffice s
 The illustrated version of these steps is in `docs/v0.9_Install_and_User_Guide.md` (and the .docx in the package).
 
 1. Save `..._v0.9_working.xlsm` somewhere local first, not on SharePoint yet. If Windows shows "This file came from another computer", right-click the file → Properties → tick **Unblock** → OK.
-2. Open it in desktop Excel and click **Enable Content**.
+2. Open it in desktop Excel and click **Enable Content**. If Excel offers to repair the file instead, click **No**, stop, and report it (a screenshot of the message, plus the repair log if one was shown). Don't save a repaired copy.
 3. Press **Alt+F11** to open the VBA editor, then **File → Import File…** and import, one at a time:
    - `vba/modTimeline.bas`
    - `vba/modStore.bas`
@@ -31,7 +31,7 @@ What changed in the file (built by script; Power Query untouched):
   - `Dashboard_Settings` (`tblManpowerChargeTo`)
   - `Legacy_Timeline` (hidden; the full v0.8 dashboard, still driven by its own C5, for comparison)
   - `ProjectionStore` (very hidden)
-- The manpower table and sheet are renamed `tblManpowerSelectedTest` / `PQ_Manpower_SelectedTest` (they were `qManpower_SelectedTest` / `PQManpower_SelectedTest`), and the stray `=SUM(...)` under it is removed. The query is still `qManpower_SelectedTest`.
+- The manpower table and sheet keep their v0.8 names, `qManpower_SelectedTest` / `PQManpower_SelectedTest`. The stray `=SUM(...)` under the table is removed.
 
 ---
 

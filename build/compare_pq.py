@@ -5,21 +5,21 @@ Load Project / Save Projections and saved by Excel). Excel re-encodes the
 package when it saves, so this compares meaning, not bytes:
   * the M code (Formulas/Section1.m inside the DataMashup) is identical;
   * the same connections exist, with the same command text;
-  * every query table loads to the same table name on the same sheet.
+  * every query table loads to the same table name on the same sheet;
+  * the saved file's own links hold (verify_v09_working.check_links): hidden
+    ExternalData_n names, query tables, tables and FillTargets agree.
 
 Usage:
     python3 -I compare_pq.py <baseline.xlsm> <after.xlsm>
 """
+import os
 import re
 import sys
 import zipfile
 
-from verify_v09_working import m_code
-
-# Agreed renames since v0.8 (table name, sheet name): old -> new
-RENAMES = {"qManpower_SelectedTest": "tblManpowerSelectedTest",
-           "PQManpower_SelectedTest": "PQ_Manpower_SelectedTest"}
-
+# python3 -I leaves the script's folder off sys.path; add it for the sibling module.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from verify_v09_working import check_links, m_code  # noqa: E402
 
 def connections(z):
     if "xl/connections.xml" not in z.namelist():
@@ -50,7 +50,7 @@ def query_tables(z):
                 t = z.read(part).decode("utf-8")
                 if 'tableType="queryTable"' in t:
                     tname = re.search(r' name="([^"]+)"', t).group(1)
-                    out[RENAMES.get(tname, tname)] = RENAMES.get(name, name)
+                    out[tname] = name
     return out
 
 
@@ -69,6 +69,7 @@ def main(a, b):
     if qa != qb:
         problems.append("Query table destinations differ: %s" % sorted(set(qa.items()) ^ set(qb.items())))
     print("Connections: %d, query tables: %d" % (len(cb), len(qb)))
+    problems += check_links(zb)
     for p in problems:
         print("PROBLEM:", p)
     print("RESULT:", "PASS" if not problems else "FAIL")

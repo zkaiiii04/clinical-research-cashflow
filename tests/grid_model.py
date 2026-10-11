@@ -441,11 +441,8 @@ def build_case(src_path, fy_basis):
     g = Grid(main[1].date(), main[2].date(), fy_basis)
     g.read_budget(table_rows(wb, "PQ_Budget_SelectedTest", "tblBudgetSelectedTest",
                              ["IO Code", "Expense Category", "Budget Description", "Revised Budget ($)"]))
-    mp_sheet, mp_table = (("PQ_Manpower_SelectedTest", "tblManpowerSelectedTest")
-                          if "PQ_Manpower_SelectedTest" in wb.sheetnames
-                          else ("PQManpower_SelectedTest", "qManpower_SelectedTest"))
     mp = [(io, sg, as_date(m), fte, cat, amt, st) for io, sg, m, fte, cat, amt, st in table_rows(
-        wb, mp_sheet, mp_table,
+        wb, "PQManpower_SelectedTest", "qManpower_SelectedTest",
         ["IO Code", "Staff Group", "Month", "Monthly FTE", "Rate Category", "Projected Amount ($)", "Rate Status"])]
     # Synthetic test rows: an AHS line charged to OM (with one month after the
     # project end), and a Rate-not-found row.

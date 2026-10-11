@@ -2,11 +2,20 @@
 
 **From session:** 11 October 2026 (design discovery → spec approval)
 **Where:** `main` branch of `zkaiiii04/clinical-research-cashflow` (renamed from `wardrobe-atlas` on 11 Oct 2026; GitHub redirects the old name). Design work was merged in PR #1; the unrelated Wardrobe Atlas page was removed in PR #2.
-**Status:** spec **v1.0 approved**. v0.9_working built 11 Oct 2026, but **it fails to open cleanly in desktop Excel**: Excel repairs it by removing `queryTable9.xml` (the manpower query table). **Fix this first:** see §0 and `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. UAT is on hold.
+**Status:** spec **v1.0 approved** (v1.0.2). v0.9_working was first built 11 Oct 2026 and opened with an Excel repair (queryTable9 removed). **Fixed and rebuilt the same day** (§0). Next: the user confirms the rebuilt file opens in desktop Excel with no repair prompt, then runs UAT (§9).
 
 ---
 
-## 0. START HERE: open issue, v0.9 repair error (11 Oct 2026)
+## 0. START HERE: v0.9 repair error, fixed 11 Oct 2026; awaiting confirmation in Excel
+
+**Fix session outcome (11 Oct 2026):**
+- The rename is dropped: the manpower table and sheet keep the v0.8 names `qManpower_SelectedTest` / `PQManpower_SelectedTest`. The VBA reads the name from `modTimeline.MANPOWER_TABLE`.
+- `build/verify_v09_working.py` now checks cross-part links (`check_links`) with no exemptions. It flags the first v0.9 (3 problems) and passes v0.8 and the rebuild.
+- Rebuilt from v0.8 (SHA-256 `db3bdd5b…dc81ab0`) and repackaged as `release/CashFlow_v0.9_package.zip`. The workbook's SHA-256 is in its `README_FIRST.txt`.
+- **Correction:** the shipped file *was* the build output. It says "Excel iOS" because **v0.8 itself was last saved on an iPhone/iPad**. Its PQ and VBA parts pass every check. The build no longer refuses such input; it prints the app and relies on the verifier.
+- **Next:** ask the user whether the rebuilt file opened in desktop Excel with no repair prompt. If it did, close the incident and go to §9. If not, ask for the full repair log.
+
+The original analysis, kept for the record:
 
 When the user opened the v0.9 package workbook from SharePoint in desktop Excel, Excel said it had to repair it and logged: `Removed Part: /xl/queryTables/queryTable9.xml part. (External data range)`. Full analysis: **`docs/incidents/2026-10-11-v0.9-querytable9-repair.md`**.
 
@@ -50,7 +59,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 ## 3. What was decided (one screen)
 
 - **Platform:** one shared `.xlsm` on SharePoint, desktop Excel. Several users at once, but only one drives the dashboard at a time.
-- **Driver:** E6 Source Project + F6 Main IO. The timeline reads `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `tblManpowerSelectedTest` (v0.8 name: `qManpower_SelectedTest`) and `tblActualsSelectedTest`. C5 is retired. The KPI cards are repointed to the grid totals.
+- **Driver:** E6 Source Project + F6 Main IO. The timeline reads `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `qManpower_SelectedTest` and `tblActualsSelectedTest`. C5 is retired. The KPI cards are repointed to the grid totals.
 - **Load Project:** checks Ready → refreshes only those 5 tables synchronously → checks they all match E6/F6 → builds the grid sized to the project → loads saved projections → writes the "loaded by" notice. **Never edits queries**, and there are no event handlers.
 - **Columns:** Line | IO·Code | Budget | months + a quarter total after each quarter (collapsible outline, fixed colour per quarter number) | all FY/CY totals at the far right | Project Total. No Budget-remaining column, no frozen panes.
 - **IO·Code:** the IO with the budget code joined, no space (`TF25HIP136OM`). It's merged vertically across consecutive identical values.
@@ -132,7 +141,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
   2. Fix what fails. Re-run `tests/grid_model.py` if the grid logic changes, and keep it in step with `modTimeline.bas`.
   3. For test 13, run `python3 -I build/compare_pq.py <v0.8> <user's saved v0.9>`.
   4. After UAT: promote the selected-test queries one at a time (CLAUDE.md business rules), then delete `Legacy_Timeline`.
-- **Renamed at the user's request:** the manpower table `qManpower_SelectedTest` → `tblManpowerSelectedTest`, and its sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest`. The query keeps its name. `compare_pq.py` knows about the rename. **This rename caused the queryTable9 repair error (§0); it's to be reverted or redone properly.**
+- **Rename reverted:** the first build renamed the manpower table to `tblManpowerSelectedTest` (sheet `PQ_Manpower_SelectedTest`) by editing XML, which caused the queryTable9 repair (§0). The rebuild keeps the v0.8 names. If the user still wants the new names, they rename in the Excel UI and the `MANPOWER_TABLE` constant in `modTimeline.bas` is changed to match.
 - **Gotchas:**
   - The `.bas` files must stay ASCII with CRLF line endings. Unicode labels use `ChrW()`.
   - ThisWorkbook code has to be pasted, not imported.

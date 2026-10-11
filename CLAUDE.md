@@ -13,10 +13,10 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | Stable baseline | `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm`. **Never overwrite or modify it.** |
 | Working copy | `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`. **Rebuilt 11 Oct 2026** by `build/build_v09_working.py` after the queryTable9 fix (package-level edit; Power Query byte-identical; `verify_v09_working.py` PASS). Shipped in `release/CashFlow_v0.9_package.zip` (user request), SHA-256 in its `README_FIRST.txt`. |
 | Automatic project selection | Selected-test queries all passed. Not promoted over the original tables. |
-| Dashboard timeline redesign | Spec v1.0 approved. **Build done, untested in Excel:** VBA in `vba/` (import by hand), Python port of the grid checked with LibreOffice (`tests/grid_model.py`). |
-| **Incident (fixed, to confirm)** | The first v0.9 opened with an Excel repair, "Removed Part: /xl/queryTables/queryTable9.xml", because an XML-only rename of the manpower sheet/table left `ExternalData_3` and the PQ `FillTarget` on the old names. The rebuild keeps the v0.8 names. Awaiting the user's confirmation that it opens cleanly. See `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. |
-| **Defect (fixed, to confirm)** | The timeline and C7/C8 took Project Start/End from `tblSelectedProjectMapping` (the SOA budget LOA dates) instead of `qProjects_SelectedTest` (the IREx project dates), so on tDCS the grid stopped at Dec 2026, not Sep 2027. Fixed in `vba/modTimeline.bas` (`ProjectDates`) and the build (C7/C8); spec v1.0.3; UAT test 16. The user found the stale date was in a source-file column Power Query reads. See `docs/incidents/2026-10-11-v0.9-project-end-date.md`. |
-| Next action | The user re-imports `vba/modTimeline.bas` (or uses the rebuilt package), re-tests tDCS (UAT test 16), then carries on with UAT (`tests/UAT_test_script.md`). Ask about the OT vs RA source question. |
+| Dashboard timeline redesign | Spec v1.0 approved (revision v1.0.3). **Built; in UAT.** The user has run Load Project in desktop Excel (tDCS confirmed). VBA in `vba/` (import by hand), Python port of the grid checked with LibreOffice (`tests/grid_model.py`). |
+| Incident (closed) | The first v0.9 opened with an Excel repair ("Removed Part: /xl/queryTables/queryTable9.xml") because an XML-only rename of the manpower sheet/table left `ExternalData_3` and the PQ `FillTarget` on the old names. The rebuild keeps the v0.8 names; the user's rebuilt copy opens and loads cleanly in desktop Excel. See `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. |
+| Defect (closed) | The timeline and C7/C8 took Project Start/End from `tblSelectedProjectMapping` (SOA budget LOA dates) instead of `qProjects_SelectedTest` (IREx project dates); on tDCS the grid stopped at Dec 2026, not Sep 2027. Fixed in `vba/modTimeline.bas` (`ProjectDates`) and the build (C7/C8), spec v1.0.3, UAT test 16. **Confirmed fixed by the user in desktop Excel on 11 Oct 2026.** The stale date came from a source-file column Power Query reads (SOA LOA end). See `docs/incidents/2026-10-11-v0.9-project-end-date.md`. |
+| Next action | Carry on with UAT (`tests/UAT_test_script.md`, 16 tests) and fix whatever fails. Still open: the tDCS OT vs RA source-data question (HANDOVER §0). After UAT sign-off: promote the selected-test queries one at a time and delete `Legacy_Timeline`. |
 
 ## Where things are
 
@@ -25,7 +25,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | `specs/2026-10-11-cashflow-dynamic-timeline-spec.md` | **Authoritative build spec (v1.0, approved).** Read it before any build work. |
 | `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` | Q&A log of every design decision (Q1–Q33), with the reasoning. The summary at the top is reconciled. |
 | `prototypes/cashflow-timeline-prototype.html` | Clickable HTML prototype (sample data). Published at https://claude.ai/artifact/AYqLAxM4obRV3eJAXDBLDv |
-| `docs/Clinical_Research_Cash_Flow_PRD_v1.7.docx` | Product requirements, v1.7 |
+| `docs/Clinical_Research_Cash_Flow_PRD_v1.8.docx` | Product requirements, v1.8 |
 | `docs/Clinical_Research_Cash_Flow_TECHNICAL_SPECIFICATION.md` | Technical specification (updated) |
 | `docs/Clinical_Research_Cash_Flow_Build.md` | Build status log (updated) |
 | `HANDOVER.md` | Hand-over for the next session: what to ask for, the build plan, gotchas |
@@ -33,9 +33,9 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | `build/verify_v09_working.py` | Checks a build against v0.8: PQ parts byte-identical (no exemptions), only intended parts changed, cross-part links (`check_links`: defined names → query tables → tables → `FillTarget`), new sheets/tables/names |
 | `build/compare_pq.py` | Acceptance test 13: M code, connections and query-table destinations unchanged after an Excel save, plus `check_links` on the saved file |
 | `vba/` | `modTimeline.bas`, `modStore.bas`, `modSetup.bas`, `ThisWorkbook_code.txt`: the dashboard macros |
-| `tests/UAT_test_script.md` | Install steps and the 15 acceptance tests for desktop Excel |
-| `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Defect: timeline used SOA LOA dates, not project dates. Cause, fix, test |
-| `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident: queryTable9 removed on open. Root cause, resolution, prevention |
+| `tests/UAT_test_script.md` | Install steps and the 16 acceptance tests for desktop Excel |
+| `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Defect (closed): timeline used SOA LOA dates, not project dates. Cause, fix, test |
+| `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident (closed): queryTable9 removed on open. Root cause, resolution, prevention |
 | `tests/grid_model.py` | Python port of the grid builder; recalculates the formulas in LibreOffice and checks the figures |
 
 **Not in the repo:** the `.xlsm` workbooks and the SharePoint source files. They contain internal data and SharePoint URLs, so the user uploads the workbook into each chat. Don't commit workbooks unless the user asks.
@@ -122,7 +122,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 
 ## Acceptance checkpoints (HoW2.0 - 3D Gait)
 
-Main IO `TF25HIP134`; manpower IO `TF25HIP134MP`; Revised Approved Budget **$250,000.00**; Actual to Date **$68,563.67** (MP **$24,367.83**, OM **$44,195.84**); Total Monthly FTE **9.0**; RA projection **$62,250.00** (matches the source RA Estimate Utilisation); Rate matched on every relevant row. The cross-project test uses HoW2.0 - Esko Combo. The timeline adds 15 acceptance tests (spec §13).
+Main IO `TF25HIP134`; manpower IO `TF25HIP134MP`; Revised Approved Budget **$250,000.00**; Actual to Date **$68,563.67** (MP **$24,367.83**, OM **$44,195.84**); Total Monthly FTE **9.0**; RA projection **$62,250.00** (matches the source RA Estimate Utilisation); Rate matched on every relevant row. The cross-project test uses HoW2.0 - Esko Combo. The timeline adds 16 acceptance tests (spec §13).
 
 ## Working in this environment
 

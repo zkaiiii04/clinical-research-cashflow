@@ -172,12 +172,12 @@ v0.8 has a fixed-capacity, formula-driven timeline at `Main_Dashboard` G21:BO56:
 
 ### Current status
 
-Automatic selected-project testing has passed for budget, actuals, projects and manpower. The dashboard timeline design is approved at spec v1.0. v0.9_working was built on 11 Oct 2026; the first build opened with an Excel repair that removed the manpower query table (queryTable9). That is fixed in the rebuild (incident below); UAT resumes once the user confirms the rebuilt file opens without a repair. Promotion of the selected-test queries over the original outputs is deferred until after the dashboard build and UAT.
+Automatic selected-project testing has passed for budget, actuals, projects and manpower. The dashboard timeline (spec v1.0, revision v1.0.3) is built as v0.9_working and is in UAT. The user has run Load Project in desktop Excel: the workbook opens without repair, and tDCS builds from the project dates. Promotion of the selected-test queries over the original outputs waits for UAT sign-off.
 
 ### Next phase
 
 1. ~~Create `v0.9_working` from v0.8; housekeeping; new sheets; legacy move; KPI repointing; VBA modules.~~ Done 11 Oct 2026, untested in Excel.
-2. The user imports the VBA, runs `Setup_Dashboard_v09`, and works through `tests/UAT_test_script.md` (the 15 acceptance tests, spec §13). Fix what fails.
+2. The user imports the VBA, runs `Setup_Dashboard_v09`, and works through `tests/UAT_test_script.md` (16 acceptance tests, spec §13). Fix what fails.
 3. Then promote the selected-test queries one at a time, with KPI, timeline and cross-project regression testing; complete wider UAT and multi-user SharePoint testing; delete `Legacy_Timeline` after sign-off.
 
 ### Incident (11 October 2026): queryTable9 removed when v0.9 opens
@@ -202,4 +202,6 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
   - the grid model has a tDCS regression case (43/43 checks pass);
   - the rebuild verifies;
   - UAT test 16 added.
-  - The user traced the stale end date to a source-file column Power Query reads. Awaiting the tDCS re-test.
+  - The user traced the stale end date to a source-file column Power Query reads.
+  - **Confirmed fixed by the user in desktop Excel (11 Oct 2026).** The queryTable9 incident is closed too: the rebuilt copy opens and loads cleanly.
+- **Update (11 Oct 2026):** PRD is now v1.8 (`docs/Clinical_Research_Cash_Flow_PRD_v1.8.docx`): v0.9 build, both fixes confirmed, UAT next.

@@ -20,6 +20,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Trigger:** 'Load Project' button = refresh selected-test queries synchronously → consistency check → build → load saved projections. No events; no query edits.
 - **Save:** replace-this-project rows; prompt on unsaved switch; conflict warning on later save by someone else; blank not stored, 0 stored.
 - **Unmatched saved projections:** kept, shown in an 'Unmatched' row per category, counted in totals; out-of-range months in Project Total only (with note); Re-assign / Delete actions available.
+- **Patient reimbursement:** typed $ on the OM budget line; tblPatientReimbursement retired.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -161,6 +162,10 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 ### Q20b — Unmatched row behaviour
 - (a) **Saved months outside project dates → counted in the Unmatched row's Project Total only**; month detail kept visible via a cell note/comment. No extra month columns.
 - (b) **Users can clean up**: each Unmatched row offers **Re-assign** (pick a current budget line in the same category) and **Delete** via a macro button/form.
+
+### Q21 — Patient reimbursement
+- Captured: **Option 1 — typed as dollars on the OM 'Patient Reimbursemnt' budget line like any other line; retire tblPatientReimbursement** (patients × rate calculator dropped).
+- Flags: KPI F17 'Projected Total' currently sums tblPatientReimbursement + tblManualProjection → must be re-pointed when those tables retire (ties to KPI flag) -> Q22.
 
 ## Open flags (pending input)
 - Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user

@@ -16,6 +16,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Actuals:** category level only (no line-level actuals).
 - **Rows:** line items carry budget + projection; projected-vs-actual comparison on category subtotal rows only.
 - **Columns:** Budget | months → quarter total (collapsible, fixed colour per quarter number) … | all FY/CY totals at far right | Project Total. No Budget-remaining column (pending confirm). Same layout for Calendar Year.
+- **Cell contents:** values for data (MP, actuals, manual inputs) + grid-local SUM/variance formulas for totals; no table SUMIFS.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -130,6 +131,11 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - (c) End columns: user wrote "project total is enlightened" — interpreted as **"Project Total is enough"** → no Budget-remaining / Budget−Actual columns. (Confirm.)
 - (d) Calendar Year basis: **same layout applies** ('2026 | Q1' labels; calendar-year totals replace FY totals).
 - Resulting column order: [labels] | Budget | months + quarter totals (collapsible, colour-coded) | FY (or CY) totals | Project Total.
+
+### Q17 — Cell contents
+- Asked: What does the macro write into generated cells?
+- Captured: **Option 1 — values for data, simple local formulas for totals.** Macro writes plain values for MP manpower projection, category actuals and loaded manual projections; writes short grid-local formulas (=SUM of the row's months for quarter/FY/Project totals; subtotal = SUM of line rows; Variance $ = Actual − Projected; Variance % = IFERROR(Var/Projected,"")) so totals update live as users type. No SUMIFS against PQ tables in the grid.
+- Consequence: MP/actual values are a snapshot from the last build → rebuild/reload after a PQ refresh (trigger design in Q18).
 
 ## Open flags (pending input)
 - Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user

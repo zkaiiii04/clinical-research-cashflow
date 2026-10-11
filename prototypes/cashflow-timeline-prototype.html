@@ -1,0 +1,496 @@
+<title>Cash Flow Timeline Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: workbook-style dashboard — selector panel + KPI strip on top, generated timeline grid below in its own horizontal scroller, notes underneath. */
+:root{
+  --bg:#f6f8f7; --surface:#ffffff; --surface-2:#eef2f0; --line:#d5ddd9; --line-strong:#a9b6b0;
+  --fg:#17211d; --fg-2:#4b5a54; --fg-3:#76857f;
+  --accent:#0d6b5f; --accent-fg:#ffffff; --accent-soft:#d8ece8;
+  --input:#fffbe0; --input-line:#e2cf63; --locked:#f1f4f3; --hatch:#e3e8e6;
+  --neg:#b4232a; --warn-bg:#fff1d6; --warn-fg:#7a4b00; --ok-bg:#dff1e6; --ok-fg:#1d6a3a;
+  --sub-bg:#f2f5f4; --total-bg:#17211d; --total-fg:#f6f8f7;
+  --q1:#bdd7ee; --q1t:#ddebf7; --q2:#c6e0b4; --q2t:#e2efda; --q3:#ffe699; --q3t:#fff2cc; --q4:#f8cbad; --q4t:#fce4d6; --fy:#e1e4e3;
+  --font-ui:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101614; --surface:#18201d; --surface-2:#1f2925; --line:#2e3a35; --line-strong:#4a5952;
+  --fg:#e6ece9; --fg-2:#b3c0ba; --fg-3:#8a9993;
+  --accent:#4fbfae; --accent-fg:#0b1412; --accent-soft:#1c3a35;
+  --input:#3a3517; --input-line:#8f7d24; --locked:#1c2421; --hatch:#232c29;
+  --neg:#ff7b7f; --warn-bg:#3b2c10; --warn-fg:#f3c46b; --ok-bg:#163223; --ok-fg:#7fd6a0;
+  --sub-bg:#1d2622; --total-bg:#e6ece9; --total-fg:#101614;
+  --q1:#24486b; --q1t:#1b3147; --q2:#2f5223; --q2t:#22361b; --q3:#6b5715; --q3t:#463a13; --q4:#6e3c1f; --q4t:#472a19; --fy:#2a3330;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#101614; --surface:#18201d; --surface-2:#1f2925; --line:#2e3a35; --line-strong:#4a5952;
+  --fg:#e6ece9; --fg-2:#b3c0ba; --fg-3:#8a9993;
+  --accent:#4fbfae; --accent-fg:#0b1412; --accent-soft:#1c3a35;
+  --input:#3a3517; --input-line:#8f7d24; --locked:#1c2421; --hatch:#232c29;
+  --neg:#ff7b7f; --warn-bg:#3b2c10; --warn-fg:#f3c46b; --ok-bg:#163223; --ok-fg:#7fd6a0;
+  --sub-bg:#1d2622; --total-bg:#e6ece9; --total-fg:#101614;
+  --q1:#24486b; --q1t:#1b3147; --q2:#2f5223; --q2t:#22361b; --q3:#6b5715; --q3t:#463a13; --q4:#6e3c1f; --q4t:#472a19; --fy:#2a3330;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:14px;line-height:1.45}
+.wrap{max-width:1400px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:18px}
+h1{font-size:1.45rem;font-weight:600;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:1rem;font-weight:600;margin:0}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);font-weight:600}
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}
+.sample{font-size:.78rem;background:var(--warn-bg);color:var(--warn-fg);padding:3px 9px;border-radius:999px;font-weight:500}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 16px;align-items:end}
+.field{display:grid;gap:4px;min-width:0}
+.field label,.field .lbl{font-size:.75rem;color:var(--fg-2);font-weight:500}
+select{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:6px 8px;min-width:0;width:100%}
+.ro{font-family:var(--font-num);font-size:.86rem;padding:6px 0}
+.pill{display:inline-block;font-size:.78rem;font-weight:600;padding:3px 10px;border-radius:999px;width:max-content}
+.pill.ok{background:var(--ok-bg);color:var(--ok-fg)} .pill.warn{background:var(--warn-bg);color:var(--warn-fg)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+button{font:inherit;font-weight:500;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg)}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.linkbtn{border:none;background:none;color:var(--accent);padding:4px 2px;text-decoration:underline;text-underline-offset:2px;font-size:.82rem}
+.notice{font-size:.82rem;color:var(--fg-2);margin-left:auto}
+.status{font-family:var(--font-num);font-size:.78rem;color:var(--fg-2);min-height:1.2em}
+.warnings{display:grid;gap:6px}
+.warnings:empty{display:none}
+.wmsg{font-size:.82rem;background:var(--warn-bg);color:var(--warn-fg);padding:6px 10px;border-radius:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:2px}
+.kpi .v{font-family:var(--font-num);font-size:1.25rem;font-weight:500;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:.75rem;color:var(--fg-3)}
+.gridhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.78rem;color:var(--fg-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--line-strong);display:inline-block}
+.scroller{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table.tl{border-collapse:separate;border-spacing:0;font-size:.8rem;min-width:100%}
+.tl th,.tl td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:4px 7px;white-space:nowrap}
+.tl thead th{font-weight:600;color:var(--fg);background:var(--surface-2);text-align:center}
+.tl thead tr.qrow th{font-size:.74rem}
+.tl th.lab,.tl td.lab{text-align:left}
+.tl td.lab{min-width:230px;max-width:300px;white-space:normal}
+.tl td.num{font-family:var(--font-num);text-align:right;font-variant-numeric:tabular-nums;min-width:74px}
+.tl td.io{font-family:var(--font-num);font-size:.74rem;color:var(--fg-2);vertical-align:middle;background:var(--surface)}
+.neg{color:var(--neg)}
+.qbtn{border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);padding:0 5px;font-size:.72rem;line-height:1.3;border-radius:4px;margin-left:5px;font-family:var(--font-num)}
+.hdr-q1{background:var(--q1)!important} .hdr-q2{background:var(--q2)!important} .hdr-q3{background:var(--q3)!important} .hdr-q4{background:var(--q4)!important}
+.m-q1{background:var(--q1t)} .m-q2{background:var(--q2t)} .m-q3{background:var(--q3t)} .m-q4{background:var(--q4t)}
+.t-q1{background:var(--q1);font-weight:600} .t-q2{background:var(--q2);font-weight:600} .t-q3{background:var(--q3);font-weight:600} .t-q4{background:var(--q4);font-weight:600}
+.fycol{background:var(--fy);font-weight:600} .ptcol{background:var(--surface-2);font-weight:700}
+.hide{display:none}
+tr.block td{background:var(--accent-soft);font-weight:700;font-size:.82rem;letter-spacing:.04em}
+tr.budgetOnly td.mcell{background:repeating-linear-gradient(135deg,var(--hatch) 0 4px,transparent 4px 8px)}
+tr.calc td.lab::before{content:"🔒 ";font-size:.7rem}
+tr.calc td.num:not(.tcol){background-color:var(--locked)}
+tr.rnf td.lab{color:var(--warn-fg)}
+tr.unmatched td{font-style:italic}
+tr.unmatched td.lab{color:var(--warn-fg)}
+tr.unmatched.sel td{outline:2px solid var(--accent);outline-offset:-2px}
+tr.unmatched{cursor:pointer}
+td.inp{padding:0!important;background:var(--input)!important}
+td.inp input{width:100%;min-width:74px;border:none;background:transparent;font-family:var(--font-num);font-size:.8rem;text-align:right;padding:4px 7px;color:var(--fg)}
+td.inp input.bad{outline:2px solid var(--neg);outline-offset:-2px}
+tr.sub td{background:var(--sub-bg);font-weight:600}
+tr.sub.first td{border-top:2px solid var(--line-strong)}
+tr.sub td.lab{padding-left:18px}
+tr.ptot td{background:var(--total-bg);color:var(--total-fg);font-weight:600}
+tr.ptot td.neg{color:var(--total-fg);text-decoration:underline;text-decoration-color:var(--neg);text-decoration-thickness:2px}
+td.hasnote{position:relative}
+td.hasnote::after{content:"";position:absolute;top:0;right:0;border-left:7px solid transparent;border-top:7px solid var(--neg)}
+.side{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start}
+.side table{border-collapse:collapse;font-size:.78rem;width:100%}
+.side th,.side td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left}
+.side td{font-family:var(--font-num)}
+.notes{display:grid;gap:8px;max-width:70ch}
+.notes ul{margin:0;padding-left:18px;display:grid;gap:5px;color:var(--fg-2)}
+.empty{padding:28px 16px;color:var(--fg-2);text-align:center}
+.modal-bg{position:fixed;inset:0;background:rgba(10,16,14,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal{background:var(--surface);color:var(--fg);border-radius:10px;border:1px solid var(--line);max-width:440px;width:100%;padding:18px;display:grid;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.modal p{margin:0;color:var(--fg-2)}
+.modal .btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--total-bg);color:var(--total-fg);padding:8px 14px;border-radius:6px;font-size:.85rem;z-index:30}
+@media (prefers-reduced-motion: no-preference){ .toast{transition:opacity .2s} }
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <div style="display:grid;gap:4px">
+      <span class="eyebrow">Main_Dashboard · v0.9 prototype</span>
+      <h1>Clinical Research Cash Flow Dashboard</h1>
+    </div>
+    <span class="sample">Prototype with sample figures</span>
+  </div>
+
+  <section class="panel" aria-label="Project selection">
+    <div class="controls">
+      <div class="field"><label for="selProj">Source Project (E6)</label><select id="selProj"></select></div>
+      <div class="field"><label for="selIO">Main IO Code (F6)</label><select id="selIO"></select></div>
+      <div class="field"><span class="lbl">Setup Status (G6)</span><span id="setup" class="pill ok">Ready</span></div>
+      <div class="field"><label for="selBasis">Calendar Basis (C6)</label><select id="selBasis"><option>Financial Year</option><option>Calendar Year</option></select></div>
+      <div class="field"><span class="lbl">Project Start – End</span><span class="ro" id="dates">–</span></div>
+      <div class="field"><span class="lbl">Latest SOA Month</span><span class="ro" id="soa">–</span></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="btnLoad">Load Project</button>
+      <button id="btnSave">Save Projections</button>
+      <button id="btnReassign" disabled>Re-assign unmatched</button>
+      <button id="btnDelete" disabled>Delete unmatched</button>
+      <span class="notice" id="loadedBy">Not loaded yet</span>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+  </section>
+
+  <div class="warnings" id="warnings"></div>
+
+  <section class="kpis" aria-label="KPI cards">
+    <div class="kpi"><span class="eyebrow">Revised Approved Budget</span><span class="v" id="kBudget">–</span><span class="s">C14 · grid budget total</span></div>
+    <div class="kpi"><span class="eyebrow">Actual to Date</span><span class="v" id="kActual">–</span><span class="s">F14 · grid actual total</span></div>
+    <div class="kpi"><span class="eyebrow">Projected Total</span><span class="v" id="kProj">–</span><span class="s">F17 · grid projected total</span></div>
+    <div class="kpi"><span class="eyebrow">Overall Utilisation</span><span class="v" id="kUtil">–</span><span class="s">C17 · actual ÷ budget</span></div>
+    <div class="kpi"><span class="eyebrow">Projected Utilisation</span><span class="v" id="kPUtil">–</span><span class="s">C19 · projected ÷ budget</span></div>
+  </section>
+
+  <section style="display:grid;gap:10px" aria-label="Timeline">
+    <div class="gridhead">
+      <h2>Timeline</h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button id="btnCollapse">Collapse all quarters</button>
+        <button id="btnExpand">Expand all quarters</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--input)"></i>Type projection here</span>
+      <span><i class="sw" style="background:var(--locked)"></i>🔒 Manpower (FTE × rate, read-only)</span>
+      <span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--hatch) 0 3px,transparent 3px 6px)"></i>MP budget line (budget only)</span>
+      <span><i class="sw" style="background:var(--warn-bg)"></i>Unmatched saved projection (click to select)</span>
+      <span><i class="sw" style="background:var(--q1)"></i><i class="sw" style="background:var(--q2)"></i><i class="sw" style="background:var(--q3)"></i><i class="sw" style="background:var(--q4)"></i>Q1–Q4 colours</span>
+    </div>
+    <div class="scroller" id="scroller"><div class="empty">Choose a project and click <b>Load Project</b> to build the timeline.</div></div>
+  </section>
+
+  <section class="side">
+    <div class="panel" style="display:grid;gap:8px">
+      <h2>Dashboard_Settings · charge-to table</h2>
+      <table><thead><tr><th>Source Project</th><th>Rate Category</th><th>IO</th><th>Charge To</th></tr></thead>
+      <tbody id="chargeTo"></tbody></table>
+    </div>
+    <div class="panel" style="display:grid;gap:8px">
+      <h2>ProjectionStore (very hidden)</h2>
+      <table><thead><tr><th>Project</th><th>Rows</th><th>Saved by</th><th>Saved at</th></tr></thead>
+      <tbody id="storeInfo"></tbody></table>
+      <button class="linkbtn" id="btnSim" style="justify-self:start">Simulate a colleague saving this project (to see the conflict warning)</button>
+    </div>
+  </section>
+
+  <section class="panel notes">
+    <h2>What to look at</h2>
+    <ul>
+      <li>Switch between the two projects and click <b>Load Project</b>. The month, quarter and FY columns change to fit each project's dates.</li>
+      <li>Click <b>−</b> on a quarter header to collapse it to its total; <b>+</b> expands it again.</li>
+      <li>Type in the yellow cells. Totals, subtotals, variances and the KPI cards update straight away.</li>
+      <li>Variance compares actuals with projections only up to the Latest SOA Month, so planned spend in later months is not counted as underspend.</li>
+      <li>3D Gait has saved projections, including one against an old line name ("Publications") and one in a month after the project end. They appear as Unmatched rows, are counted in the totals, and can be re-assigned or deleted.</li>
+      <li>Esko Combo has one manpower line charged to OM (shown in the OM block) and one manpower line with no matching rate.</li>
+      <li>The IO · Code column follows the manpower IO convention, with the budget code joined to the IO and no space (e.g. TF25HIP136OM). It is merged across consecutive lines that share it, so MP budget lines and manpower lines on TF25HIP136MP share one cell.</li>
+      <li>Locked manpower rows end in “(Projected)” so they stand apart from the MP budget lines.</li>
+      <li>Variance uses the standard number format (negatives in red brackets), with no extra colour coding.</li>
+      <li>Sample figures: the 3D Gait totals match the reconciled checkpoints ($250,000 budget, $68,563.67 actuals, $62,250 RA projection), but how they are spread across months is made up. Esko Combo uses the budget lines and actuals saved in v0.8; its manpower lines are made up. The two projects are shown with the same Latest SOA Month for simplicity.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+// ---------- sample data ----------
+const RA_RATE = 83000/12;
+function fteMonths(start, ftes, rate){ const o={}; let ym=start; ftes.forEach(f=>{ o[ym]= f==null?null:Math.round(f*rate*100)/100; ym=addM(ym,1); }); return o; }
+const PROJECTS = [
+  { source:"HoW2.0 - 3D Gait", ios:["TF25HIP134"], mainIO:"TF25HIP134", start:"2025-11", end:"2027-03", soa:"2026-08",
+    budget:[
+      ["MP","MP","TF25HIP134","RA",110000],["MP","MP","TF25HIP134","RA",10000],
+      ["MP","MP","TF25HIP134","Research Fellow",20000],["MP","MP","TF25HIP134","Research Fellow",-20000],
+      ["CO","CO","TF25HIP134","Consumables & stationery",5000],
+      ["OM","OM","TF25HIP134","Patient Reimbursement",15000],["OM","OM","TF25HIP134","Therapy Associate Service",80000],
+      ["OM","OM","TF25HIP134","Publication",5000],["OM","OM","TF25HIP134","HBRA",4000],["OM","OM","TF25HIP134","Biostatistics Support",21000]],
+    manpower:[ {cat:"RA", group:"Research Assistant", io:"TF25HIP134MP", months:fteMonths("2026-04",[.6,.6,.7,.7,.8,.8,.8,.8,.8,.8,.8,.8],RA_RATE)} ],
+    actuals:{ MP:{"2026-04":4150,"2026-05":4150,"2026-06":4841.66,"2026-07":4841.67,"2026-08":6384.50},
+              OM:{"2025-12":3800,"2026-01":4200,"2026-02":4900,"2026-03":5100,"2026-04":5200,"2026-05":5300,"2026-06":5000,"2026-07":5400,"2026-08":5295.84} }
+  },
+  { source:"HoW2.0 - Esko Combo", ios:["TF25HIP136"], mainIO:"TF25HIP136", start:"2025-11", end:"2027-03", soa:"2026-08",
+    budget:[
+      ["MP","MP","TF25HIP136","RA",64200],["MP","MP","TF25HIP136","RA",8400],["MP","MP","TF25HIP136","Therapist",88000],
+      ["MP","MP","TF25HIP136","Research Fellow",39000],["MP","MP","TF25HIP136","Research Fellow",-39000],
+      ["EQ","EQ","TF25HIP136","Technological Development",38500],
+      ["CO","CO","TF25HIP136","Stationary, Alcohol wipes, Paper",300],
+      ["OM","OM","TF25HIP136","Patient Reimbursemnt",9000],["OM","OM","TF25HIP136","HBRA",4000],
+      ["OM","OM","TF25HIP136","CRIO/ Biostatistics Support",4000],["OM","OM","TF25HIP136","Publication",3000],
+      ["OM","OM","TF25HIP136","Therapy Associate Service",0],["OM","OM","TF25HIP136","Therapy Associate Service ",30600]],
+    manpower:[
+      {cat:"AHS (OT/PT)", group:"Allied Health / Nurse", io:"TF25HIP136MP", months:fteMonths("2026-04",Array(12).fill(1),89200/12)},
+      {cat:"RA", group:"Research Assistant", io:"TF25HIP136MP", months:fteMonths("2026-04",Array(12).fill(.8),RA_RATE)},
+      {cat:"AHS", group:"Allied Health / Nurse", io:"TF25HIP136MP", months:fteMonths("2026-08",Array(8).fill(.5),81000/12)},
+      {cat:null, group:"Allied Health / Nurse", io:"TF25HIP136MP", rnf:true, months:fteMonths("2027-01",[null,null,null],0)} ],
+    actuals:{ MP:{"2026-04":6101.33,"2026-05":9015.75,"2026-06":6985.46,"2026-07":23597.34,"2026-08":7272.36}, OM:{"2026-08":7356.06} }
+  }
+];
+const CHARGE_TO = [ {source:"HoW2.0 - Esko Combo", mainIO:"TF25HIP136", cat:"AHS", io:"TF25HIP136MP", to:"OM"} ];
+const CATS = ["MP","OM","EQ","CO","OTHER"];
+
+// projection store: key -> {rows:[{cat,code,io,key,desc,ym,amt}], savedBy, savedAt}
+const STORE = {};
+(function seed(){
+  const rows=[]; const add=(cat,desc,ym,amt)=>rows.push({cat,code:cat,io:"TF25HIP134",key:norm(desc),desc,ym,amt});
+  let ym="2026-01"; for(let i=0;i<15;i++){ add("OM","Therapy Associate Service",ym,5000); ym=addM(ym,1); }
+  ym="2026-02"; for(let i=0;i<12;i++){ add("OM","Patient Reimbursement",ym,1000); ym=addM(ym,1); }
+  ["2026-06","2026-12","2027-03"].forEach(m=>add("OM","Biostatistics Support",m,7000));
+  ["2026-03","2026-06","2026-09","2026-12"].forEach(m=>add("CO","Consumables & stationery",m,1000));
+  add("OM","HBRA","2026-10",4000);
+  add("OM","Publications","2026-09",2500); add("OM","Publications","2027-04",1000);
+  STORE["HoW2.0 - 3D Gait|TF25HIP134"]={rows, savedBy:"Sample user", savedAt:new Date(2026,9,10,17,40)};
+})();
+
+// ---------- helpers ----------
+function norm(s){ return String(s).replace(/[\u0000-\u001f]/g,"").trim().replace(/\s+/g," ").toUpperCase(); }
+function addM(ym,n){ let [y,m]=ym.split("-").map(Number); m+=n; while(m>12){m-=12;y++;} while(m<1){m+=12;y--;} return y+"-"+String(m).padStart(2,"0"); }
+const MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function mLabel(ym){ const [y,m]=ym.split("-").map(Number); return MN[m-1]+" "+String(y).slice(2); }
+function mLong(ym){ const [y,m]=ym.split("-").map(Number); return MN[m-1]+" "+y; }
+function money(n){ if(n==null||n==="") return {t:"",neg:false}; const r=Math.round(n)||0; const s=Math.abs(r).toLocaleString("en-US"); return r<0?{t:"("+s+")",neg:true}:{t:s,neg:false}; }
+function pct(n){ if(n==null||!isFinite(n)) return {t:"",neg:false}; if(Math.abs(n)<0.0005) n=0; const v=(n*100).toFixed(1); return n<0?{t:"("+v.replace("-","")+"%)",neg:true}:{t:v+"%",neg:false}; }
+function quarterOf(ym,basis){ const [y,m]=ym.split("-").map(Number);
+  if(basis==="Financial Year"){ const fy=m<4?y-1:y; const q=Math.floor(((m-4+12)%12)/3)+1; const yy=String(fy).slice(2); return {id:"FY"+yy+"Q"+q,label:"FY"+yy+"/Q"+q,q,fy:"FY"+yy+" Total"}; }
+  const q=Math.ceil(m/3); return {id:y+"Q"+q,label:y+" | Q"+q,q,fy:y+" Total"}; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+const $=id=>document.getElementById(id);
+
+// ---------- state ----------
+const S={ loaded:null, cols:null, blocks:null, inputs:{}, snapshot:"", collapsed:new Set(), sel:null, loadedAt:null };
+
+// ---------- selector ----------
+function fillSelectors(){
+  $("selProj").innerHTML=PROJECTS.map((p,i)=>`<option value="${i}">${esc(p.source)}</option>`).join("");
+  fillIO();
+}
+function fillIO(){ const p=curProj(); $("selIO").innerHTML=p.ios.map(io=>`<option>${io}</option>`).join(""); updateInfo(); }
+function curProj(){ return PROJECTS[+$("selProj").value]; }
+function curKey(){ return curProj().source+"|"+$("selIO").value; }
+function updateInfo(){
+  const p=curProj(); $("dates").textContent=mLong(p.start)+" – "+mLong(p.end); $("soa").textContent=mLong(p.soa);
+  const ok=$("selIO").value===p.mainIO; $("setup").textContent=ok?"Ready":"Main IO not found"; $("setup").className="pill "+(ok?"ok":"warn");
+  if(S.loaded && S.loaded.key!==curKey()) setStatus("Selection changed. Click Load Project to show "+p.source+".");
+}
+
+// ---------- model ----------
+function buildCols(p,basis){
+  const months=[]; for(let ym=p.start; ym<=p.end; ym=addM(ym,1)) months.push(ym);
+  const cols=[]; const quarters=[]; const fys=[];
+  months.forEach((ym,i)=>{ const q=quarterOf(ym,basis); let Q=quarters[quarters.length-1];
+    if(!Q||Q.id!==q.id){ Q={id:q.id,label:q.label,q:q.q,months:[]}; quarters.push(Q); }
+    Q.months.push(ym); cols.push({type:"m",ym,qid:q.id,q:q.q});
+    let F=fys.find(f=>f.label===q.fy); if(!F){F={label:q.fy,months:[]};fys.push(F);} F.months.push(ym);
+    const next=months[i+1]; if(!next||quarterOf(next,basis).id!==q.id) cols.push({type:"q",qid:q.id,q:q.q,months:Q.months});
+  });
+  fys.forEach(f=>cols.push({type:"fy",label:f.label,months:f.months}));
+  cols.push({type:"pt",months});
+  return {cols,quarters,months};
+}
+function catOf(code){ return ["MP","OM","EQ","CO"].includes(code)?code:"OTHER"; }
+function buildBlocks(p,key){
+  const months=new Set(S.cols.months);
+  const blocks=CATS.map(cat=>({cat,rows:[],actual:p.actuals[cat]||{}}));
+  const B=c=>blocks.find(b=>b.cat===c);
+  // merge budget lines
+  const lines=new Map();
+  p.budget.forEach(([cat,code,io,desc,amt])=>{ const c=catOf(code); const k=c+"|"+code+"|"+io+"|"+norm(desc);
+    if(!lines.has(k)) lines.set(k,{cat:c,code,io,desc:desc.trim(),lkey:norm(desc),budget:0}); lines.get(k).budget+=amt; });
+  const visible=new Set();
+  lines.forEach((l,k)=>{ if(Math.round(l.budget)===0) return; visible.add(k);
+    B(l.cat).rows.push({id:"r"+Math.random().toString(36).slice(2,8),kind:l.cat==="MP"?"budgetOnly":"input",label:l.desc,code:l.code,io:l.io,budget:l.budget,k,vals:{},oor:0}); });
+  // manpower
+  p.manpower.forEach(mp=>{ const ct=CHARGE_TO.find(c=>c.source===p.source&&c.cat===mp.cat&&c.io===mp.io); const to=ct?ct.to:"MP";
+    const vals={}; let oor=0; const oorList=[];
+    Object.entries(mp.months).forEach(([ym,v])=>{ if(months.has(ym)) vals[ym]=v; else if(v!=null){ oor+=v; oorList.push(mLabel(ym)); } });
+    const label=mp.rnf? mp.group+" (Projected) ⚠ Rate not found" : mp.cat+" (Projected)"+(to!=="MP"?"  ⚙ manpower → "+to:"");
+    B(mp.rnf?"MP":to).rows.push({id:"r"+Math.random().toString(36).slice(2,8),kind:mp.rnf?"rnf":"calc",label,code:"MP",io:mp.io,budget:null,vals,oor,oorNote:oorList.join(", ")});
+  });
+  // saved projections
+  S.inputs={};
+  const st=STORE[key]; const orphan=new Map();
+  if(st) st.rows.forEach(r=>{ const k=r.cat+"|"+r.code+"|"+r.io+"|"+r.key; const row=visible.has(k)&&B(r.cat).rows.find(x=>x.k===k);
+    if(row && months.has(r.ym)){ (S.inputs[row.id]=S.inputs[row.id]||{})[r.ym]=r.amt; return; }
+    const ok=r.cat+"|"+k; if(!orphan.has(ok)) orphan.set(ok,{cat:r.cat,code:r.code,io:r.io,key:r.key,desc:r.desc,inGrid:!!row,vals:{},oor:0,oorList:[],raw:[]});
+    const o=orphan.get(ok); o.raw.push(r); if(months.has(r.ym)) o.vals[r.ym]=(o.vals[r.ym]||0)+r.amt; else { o.oor+=r.amt; o.oorList.push(mLabel(r.ym)+": "+money(r.amt).t); } });
+  orphan.forEach(o=>{ const reason=o.inGrid?"month outside project dates":(lines.has(o.cat+"|"+o.code+"|"+o.io+"|"+o.key)?"line now nets to $0":"no longer in budget");
+    B(o.cat).rows.push({id:"u"+Math.random().toString(36).slice(2,8),kind:"unmatched",label:"Unmatched: "+o.desc+" ("+reason+")",code:o.code,io:o.io,budget:null,vals:o.vals,oor:o.oor,oorNote:o.oorList.join("; "),orphan:o}); });
+  return blocks.filter(b=>b.rows.length||Object.keys(b.actual).length);
+}
+
+// ---------- values ----------
+function cellVal(row,ym){ if(row.kind==="input"){ const v=(S.inputs[row.id]||{})[ym]; return v==null?null:v; } if(row.kind==="budgetOnly") return null; const v=row.vals[ym]; return v==null?null:v; }
+function sumMonths(fn,months){ let s=0,any=false; months.forEach(m=>{ const v=fn(m); if(v!=null){s+=v;any=true;} }); return any?s:null; }
+function blockCalc(b){
+  const proj=ym=>sumMonths0(b.rows.map(r=>cellVal(r,ym)));
+  const soa=S.loaded.p.soa;
+  const act=ym=>ym<=soa?(b.actual[ym]||0):null;
+  return {proj,act,soa,oor:b.rows.reduce((s,r)=>s+(r.oor||0),0),budget:b.rows.reduce((s,r)=>s+(r.budget||0),0)};
+}
+function sumMonths0(arr){ let s=0,any=false; arr.forEach(v=>{ if(v!=null){s+=v;any=true;} }); return any?s:null; }
+function periodVals(c, calc, months){ // returns {proj, act, var, pct}
+  const proj=sumMonths(calc.proj,months); const pt=c.type==="pt"; const projFull=(proj||0)+(pt?calc.oor:0);
+  const toDate=months.filter(m=>m<=calc.soa);
+  const act=toDate.length?sumMonths(calc.act,toDate)||0:null;
+  const projTD=toDate.length?(sumMonths(calc.proj,toDate)||0):null;
+  const v=act==null?null:act-projTD;
+  return {proj:(proj==null&&!(pt&&calc.oor))?null:projFull, act, v, p:(v==null||!projTD)?null:v/projTD};
+}
+
+// ---------- render ----------
+function colClass(c){ if(c.type==="m") return "m-q"+c.q+" mcell q-"+c.qid; if(c.type==="q") return "t-q"+c.q+" tcol"; if(c.type==="fy") return "fycol tcol"; return "ptcol tcol"; }
+function colMonths(c){ return c.type==="m"?[c.ym]:c.months; }
+function render(){
+  const {cols,quarters}=S.cols; let h="<table class='tl'><thead><tr class='qrow'><th class='lab' rowspan='2'>Line</th><th rowspan='2'>IO · Code</th><th rowspan='2'>Budget</th>";
+  quarters.forEach(Q=>{ const col=S.collapsed.has(Q.id); h+=`<th class="hdr-q${Q.q}" colspan="${col?1:Q.months.length+1}" data-qh="${Q.id}">${Q.label}<button class="qbtn" data-q="${Q.id}" aria-label="${col?"Expand":"Collapse"} ${Q.label}">${col?"+":"−"}</button></th>`; });
+  const fyc=cols.filter(c=>c.type==="fy").length; h+=`<th class="fycol" colspan="${fyc}">${S.loaded.basis==="Financial Year"?"Financial year totals":"Calendar year totals"}</th><th class="ptcol" rowspan="2">Project<br>Total</th></tr><tr>`;
+  cols.forEach(c=>{ if(c.type==="pt") return; const hid=c.type==="m"&&S.collapsed.has(c.qid)?" hide":"";
+    const lbl=c.type==="m"?mLabel(c.ym):c.type==="q"?"Q Total":c.label; h+=`<th class="${c.type==="m"?"hdr-q"+c.q+" q-"+c.qid:c.type==="q"?"hdr-q"+c.q:"fycol"}${hid}" style="${c.type==="m"?"font-weight:500":""}">${lbl}</th>`; });
+  h+="</tr></thead><tbody>";
+  S.blocks.forEach((b,bi)=>{
+    const ioKey=r=>(r.kind==="calc"||r.kind==="rnf")?r.io:r.io+r.code;
+    h+=`<tr class="block"><td class="lab" colspan="${3+cols.length}">${b.cat==="OTHER"?"OTHER (AL, OT, B, C, D …)":b.cat}</td></tr>`;
+    b.rows.forEach((r,ri)=>{
+      let ioCell=""; const kk=ioKey(r);
+      if(ri===0||ioKey(b.rows[ri-1])!==kk){ let n=1; while(ri+n<b.rows.length&&ioKey(b.rows[ri+n])===kk) n++; ioCell=`<td class="io" rowspan="${n}">${esc(kk)}</td>`; }
+      h+=`<tr class="${r.kind}${S.sel===r.id?" sel":""}" data-row="${r.id}"><td class="lab">${esc(r.label)}</td>${ioCell}<td class="num" id="b-${r.id}"></td>`;
+      cols.forEach((c,ci)=>{ const hid=c.type==="m"&&S.collapsed.has(c.qid)?" hide":"";
+        if(c.type==="m"&&r.kind==="input"){ const v=(S.inputs[r.id]||{})[c.ym]; h+=`<td class="num inp ${colClass(c)}${hid}"><input id="i-${r.id}-${c.ym}" data-r="${r.id}" data-m="${c.ym}" inputmode="decimal" aria-label="${esc(r.label)} ${mLabel(c.ym)}" value="${v==null?"":Math.round(v).toLocaleString("en-US")}"></td>`; }
+        else { const note=c.type==="pt"&&r.oor?` hasnote" title="Saved months outside the project dates: ${esc(r.oorNote)}`:""; h+=`<td class="num ${colClass(c)}${hid}${note}" id="c-${r.id}-${ci}"></td>`; }
+      });
+      h+="</tr>";
+    });
+    [["Projected","P"],["Actual","A"],["Variance ($)","V"],["Variance (%)","%"]].forEach(([n,t],i)=>{
+      h+=`<tr class="sub${i===0?" first":""}"><td class="lab">${b.cat} ${n}</td><td></td><td class="num" id="sb-${bi}-${t}"></td>`;
+      cols.forEach((c,ci)=>{ const hid=c.type==="m"&&S.collapsed.has(c.qid)?" hide":""; h+=`<td class="num ${colClass(c)}${hid}" id="s-${bi}-${t}-${ci}"${t==="V"||t==="%"?` title="Actual minus projected, up to ${mLong(S.loaded.p.soa)}"`:""}></td>`; });
+      h+="</tr>";
+    });
+  });
+  [["PROJECT TOTAL Projected","P"],["PROJECT TOTAL Actual","A"],["PROJECT TOTAL Variance ($)","V"],["PROJECT TOTAL Variance (%)","%"]].forEach(([n,t])=>{
+    h+=`<tr class="ptot"><td class="lab">${n}</td><td></td><td class="num" id="tb-${t}"></td>`;
+    cols.forEach((c,ci)=>{ const hid=c.type==="m"&&S.collapsed.has(c.qid)?" hide":""; h+=`<td class="num${hid}" id="t-${t}-${ci}"></td>`; });
+    h+="</tr>";
+  });
+  h+="</tbody></table>";
+  $("scroller").innerHTML=h; recompute();
+}
+function put(id,f){ const el=$(id); if(!el) return; el.textContent=f.t; el.classList.toggle("neg",f.neg); }
+function recompute(){
+  const {cols}=S.cols; const tot={P:{},A:{},V:{},PTD:{}}; let tBudget=0;
+  S.blocks.forEach((b,bi)=>{
+    const calc=blockCalc(b);
+    b.rows.forEach(r=>{ put("b-"+r.id,money(r.budget));
+      cols.forEach((c,ci)=>{ if(c.type==="m"&&r.kind==="input") return; let v;
+        if(c.type==="m") v=cellVal(r,c.ym); else { v=sumMonths(m=>cellVal(r,m),c.months); if(c.type==="pt"&&r.oor) v=(v||0)+r.oor; }
+        put("c-"+r.id+"-"+ci, r.kind==="budgetOnly"&&c.type==="m"?{t:"",neg:false}:money(v)); }); });
+    put("sb-"+bi+"-P",money(calc.budget)); tBudget+=calc.budget;
+    cols.forEach((c,ci)=>{ const pv=periodVals(c,calc,colMonths(c));
+      put(`s-${bi}-P-${ci}`,money(pv.proj)); put(`s-${bi}-A-${ci}`,money(pv.act)); put(`s-${bi}-V-${ci}`,money(pv.v)); put(`s-${bi}-%-${ci}`,pct(pv.p));
+      const ms=colMonths(c); const td=ms.filter(m=>m<=calc.soa);
+      tot.P[ci]=(tot.P[ci]==null&&pv.proj==null)?tot.P[ci]:(tot.P[ci]||0)+(pv.proj||0);
+      if(pv.act!=null){ tot.A[ci]=(tot.A[ci]||0)+pv.act; tot.PTD[ci]=(tot.PTD[ci]||0)+(sumMonths(calc.proj,td)||0); }
+    });
+  });
+  put("tb-P",money(tBudget)); ["A","V","%"].forEach(t=>put("tb-"+t,{t:"",neg:false}));
+  cols.forEach((c,ci)=>{ put("t-P-"+ci,money(tot.P[ci])); put("t-A-"+ci,money(tot.A[ci]));
+    const v=tot.A[ci]==null?null:tot.A[ci]-tot.PTD[ci]; put("t-V-"+ci,money(v)); put("t-%-"+ci,pct(v==null||!tot.PTD[ci]?null:v/tot.PTD[ci])); });
+  const pt=cols.length-1; const P=tot.P[pt]||0, A=tot.A[pt]||0;
+  $("kBudget").textContent="$"+money(tBudget).t; $("kActual").textContent="$"+A.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  $("kProj").textContent="$"+money(P).t; $("kUtil").textContent=pct(tBudget?A/tBudget:null).t; $("kPUtil").textContent=pct(tBudget?P/tBudget:null).t;
+}
+
+// ---------- actions ----------
+function inputsSig(){ return JSON.stringify(S.inputs); }
+function dirty(){ return S.loaded && inputsSig()!==S.snapshot; }
+function setStatus(t){ $("status").textContent=t; }
+function toast(t){ const el=document.createElement("div"); el.className="toast"; el.textContent=t; document.body.appendChild(el); setTimeout(()=>{el.style.opacity="0"; setTimeout(()=>el.remove(),250);},2200); }
+function modal(title,msg,buttons,extra){ return new Promise(res=>{ const bg=document.createElement("div"); bg.className="modal-bg";
+  bg.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h2>${esc(title)}</h2><p>${esc(msg)}</p>${extra||""}<div class="btns">${buttons.map((b,i)=>`<button data-i="${i}" class="${b.primary?"primary":""}">${esc(b.label)}</button>`).join("")}</div></div>`;
+  document.body.appendChild(bg); const sel=bg.querySelector("select"); (bg.querySelector("button.primary")||bg.querySelector("button")).focus();
+  bg.addEventListener("click",e=>{ const i=e.target.dataset&&e.target.dataset.i; if(i==null) return; bg.remove(); res({v:buttons[+i].v, sel:sel?sel.value:null}); }); }); }
+
+async function load(){
+  if(dirty()){ const r=await modal("Unsaved changes","Save changes to "+S.loaded.p.source+" first?",[{label:"Cancel",v:"c"},{label:"Don't save",v:"n"},{label:"Save",v:"y",primary:true}]);
+    if(r.v==="c") return; if(r.v==="y"){ const ok=await save(true); if(!ok) return; } }
+  const p=curProj(); if($("selIO").value!==p.mainIO){ setStatus("Setup Status is not Ready."); return; }
+  $("btnLoad").disabled=true;
+  const steps=["tblSelectedProjectMapping","tblBudgetSelectedTest","tblActualsSelectedTest","qProjects_SelectedTest","qManpower_SelectedTest"];
+  for(const s of steps){ setStatus("Refreshing "+s+" …"); await new Promise(r=>setTimeout(r,140)); }
+  setStatus("Checking every table shows "+p.source+" … OK"); await new Promise(r=>setTimeout(r,160));
+  const key=curKey(); S.loaded={p,key,basis:$("selBasis").value}; S.collapsed.clear(); S.sel=null; S.cols=buildCols(p,S.loaded.basis); S.blocks=buildBlocks(p,key);
+  S.snapshot=inputsSig(); S.loadedAt=new Date(); render(); updateButtons();
+  $("loadedBy").textContent="Dashboard loaded by You at "+S.loadedAt.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+  setStatus("Built "+S.cols.months.length+" months, "+S.cols.quarters.length+" quarters for "+p.source+".");
+  const w=[]; let rnf=0, un=0, ct=0; S.blocks.forEach(b=>b.rows.forEach(r=>{ if(r.kind==="rnf") rnf++; if(r.kind==="unmatched") un++; if(r.kind==="calc"&&b.cat!=="MP") ct++; }));
+  if(rnf) w.push(rnf+" manpower line has Rate Status “Rate not found” (shown with no amount)."); if(un) w.push(un+" unmatched saved projection line(s). They are counted in the totals; re-assign or delete them.");
+  if(ct) w.push(ct+" manpower line is charged to another category (see Dashboard_Settings)."); if(!STORE[key]) w.push("No saved projections for this project yet.");
+  $("warnings").innerHTML=w.map(t=>`<div class="wmsg">${esc(t)}</div>`).join(""); $("btnLoad").disabled=false; renderSide();
+}
+async function save(fromLoad){
+  if(!S.loaded){ setStatus("Load a project first."); return false; }
+  if(!fromLoad && S.loaded.key!==curKey()){ await modal("Selection changed","The selector no longer matches the loaded project. Click Load Project first.",[{label:"OK",v:1,primary:true}]); return false; }
+  const st=STORE[S.loaded.key];
+  if(st && st.savedAt>S.loadedAt){ const r=await modal("Someone else saved",st.savedBy+" saved this project at "+st.savedAt.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})+" after you loaded it. Overwrite?",[{label:"Cancel",v:0},{label:"Overwrite",v:1,primary:true}]); if(!r.v) return false; }
+  const rows=[]; S.blocks.forEach(b=>b.rows.forEach(r=>{
+    if(r.kind==="input") Object.entries(S.inputs[r.id]||{}).forEach(([ym,amt])=>{ if(amt!=null) rows.push({cat:b.cat,code:r.code,io:r.io,key:norm(r.label),desc:r.label,ym,amt}); });
+    if(r.kind==="unmatched") r.orphan.raw.forEach(x=>rows.push(x)); }));
+  STORE[S.loaded.key]={rows,savedBy:"You",savedAt:new Date()}; S.loadedAt=new Date(Date.now()+1); S.snapshot=inputsSig();
+  toast("Saved "+rows.length+" values for "+S.loaded.p.source); renderSide(); return true;
+}
+function updateButtons(){ const u=S.sel!=null; $("btnReassign").disabled=!u; $("btnDelete").disabled=!u; }
+function findRow(id){ for(const b of S.blocks){ const r=b.rows.find(x=>x.id===id); if(r) return {b,r}; } return null; }
+async function reassign(){ const f=findRow(S.sel); if(!f) return; const opts=f.b.rows.filter(r=>r.kind==="input");
+  if(!opts.length){ await modal("Nothing to re-assign to","There are no budget lines in "+f.b.cat+" to move these amounts to.",[{label:"OK",v:1,primary:true}]); return; }
+  const extra=`<div class="field"><label for="reSel">Move to budget line in ${f.b.cat}</label><select id="reSel">${opts.map(o=>`<option value="${o.id}">${esc(o.label)}</option>`).join("")}</select></div>`;
+  const r=await modal("Re-assign unmatched",f.r.label+". Amounts in months inside the project dates move to the line you choose. Months outside the dates stay unmatched.",[{label:"Cancel",v:0},{label:"Re-assign",v:1,primary:true}],extra);
+  if(!r.v) return; const tgt=r.sel; const vals=f.r.vals; S.inputs[tgt]=S.inputs[tgt]||{};
+  Object.entries(vals).forEach(([ym,v])=>{ S.inputs[tgt][ym]=(S.inputs[tgt][ym]||0)+v; });
+  f.r.orphan.raw=f.r.orphan.raw.filter(x=>!S.cols.months.includes(x.ym)); f.r.vals={};
+  if(!f.r.orphan.raw.length) f.b.rows=f.b.rows.filter(x=>x!==f.r);
+  S.sel=null; render(); updateButtons(); toast("Re-assigned. Click Save Projections to keep it."); }
+async function del(){ const f=findRow(S.sel); if(!f) return; const r=await modal("Delete unmatched",f.r.label+". Delete these saved amounts?",[{label:"Cancel",v:0},{label:"Delete",v:1,primary:true}]);
+  if(!r.v) return; f.b.rows=f.b.rows.filter(x=>x!==f.r); S.sel=null; S.snapshot+=" "; render(); updateButtons(); toast("Deleted. Click Save Projections to keep it."); }
+function renderSide(){
+  $("chargeTo").innerHTML=CHARGE_TO.map(c=>`<tr><td>${esc(c.source)}</td><td>${esc(c.cat)}</td><td>${c.io}</td><td>${c.to}</td></tr>`).join("");
+  const ks=Object.keys(STORE); $("storeInfo").innerHTML=ks.length?ks.map(k=>{ const s=STORE[k]; return `<tr><td>${esc(k.split("|")[0])}</td><td>${s.rows.length}</td><td>${esc(s.savedBy)}</td><td>${s.savedAt.toLocaleString([], {day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}</td></tr>`; }).join(""):`<tr><td colspan="4">Empty</td></tr>`;
+}
+
+// ---------- events ----------
+$("selProj").addEventListener("change",fillIO);
+$("selIO").addEventListener("change",updateInfo);
+$("selBasis").addEventListener("change",()=>{ if(!S.loaded) return; S.loaded.basis=$("selBasis").value; const keep=S.inputs, blocks=S.blocks; S.cols=buildCols(S.loaded.p,S.loaded.basis); S.collapsed.clear(); S.inputs=keep; S.blocks=blocks; render(); setStatus("Rebuilt columns for "+S.loaded.basis+"."); });
+$("btnLoad").addEventListener("click",load);
+$("btnSave").addEventListener("click",()=>save(false));
+$("btnReassign").addEventListener("click",reassign);
+$("btnDelete").addEventListener("click",del);
+$("btnCollapse").addEventListener("click",()=>{ if(!S.cols) return; S.cols.quarters.forEach(q=>S.collapsed.add(q.id)); render(); });
+$("btnExpand").addEventListener("click",()=>{ if(!S.cols) return; S.collapsed.clear(); render(); });
+$("btnSim").addEventListener("click",()=>{ if(!S.loaded){ setStatus("Load a project first."); return; } const st=STORE[S.loaded.key]||{rows:[]}; STORE[S.loaded.key]={rows:st.rows,savedBy:"Colleague (simulated)",savedAt:new Date()}; renderSide(); toast("A colleague saved "+S.loaded.p.source+". Now click Save Projections."); });
+$("scroller").addEventListener("click",e=>{
+  const qb=e.target.closest(".qbtn"); if(qb){ const id=qb.dataset.q; S.collapsed.has(id)?S.collapsed.delete(id):S.collapsed.add(id); render(); return; }
+  const tr=e.target.closest("tr.unmatched"); if(tr){ S.sel=S.sel===tr.dataset.row?null:tr.dataset.row; document.querySelectorAll("tr.unmatched").forEach(x=>x.classList.toggle("sel",x.dataset.row===S.sel)); updateButtons(); }
+});
+$("scroller").addEventListener("input",e=>{ const el=e.target; if(!el.matches("td.inp input")) return; const t=el.value.replace(/,/g,"").trim();
+  const ok=t===""||/^-?\d*\.?\d+$/.test(t); el.classList.toggle("bad",!ok); if(!ok){ setStatus("Numbers only (negatives allowed)."); return; }
+  const m=S.inputs[el.dataset.r]=S.inputs[el.dataset.r]||{}; if(t==="") delete m[el.dataset.m]; else m[el.dataset.m]=parseFloat(t); recompute(); });
+
+fillSelectors(); renderSide();
+load();
+})();
+</script>

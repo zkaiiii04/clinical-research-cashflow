@@ -1,7 +1,7 @@
 # Handover: Clinical Research Cash Flow Dashboard Timeline
 
 **From session:** 11 October 2026 (design discovery → spec approval)
-**Where:** `main` branch of `zkaiiii04/wardrobe-atlas` (the user plans to rename this repo; GitHub redirects the old name). Design work was merged in PR #1.
+**Where:** `main` branch of `zkaiiii04/clinical-research-cashflow` (renamed from `wardrobe-atlas` on 11 Oct 2026; GitHub redirects the old name). Design work was merged in PR #1; the unrelated Wardrobe Atlas page was removed in PR #2.
 **Status:** spec **v1.0 approved**. **Workbook build not started:** the user said "approve, don't create yet".
 
 ---

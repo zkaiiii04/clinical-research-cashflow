@@ -77,6 +77,7 @@ Private actNote() As String         ' (1..5)
 Private otherCodes As Object
 Private warnRNF As Long, warnAdmin As Long, warnUnmatched As Long, warnCharged As Long
 Private warnChargeBad As String
+Private dateNote As String          ' set by CheckTables: SOA LOA dates differ from the project dates
 Private storeRowsForKey As Long
 
 Private mCalc As Long
@@ -244,6 +245,7 @@ End Sub
 
 Private Sub ShowWarnings(ByVal dispName As String)
     Dim w As String
+    If dateNote <> "" Then w = w & "- " & dateNote & vbCrLf
     If warnRNF > 0 Then w = w & "- " & warnRNF & " manpower line(s) have Rate Status ""Rate not found"". " & _
         "They are shown with no amount; check the rate grade in tbl_ManpowerRate." & vbCrLf
     If warnAdmin > 0 Then w = w & "- " & warnAdmin & " manpower line(s) use the Admin rate category, " & _
@@ -258,14 +260,21 @@ Private Sub ShowWarnings(ByVal dispName As String)
 End Sub
 
 '==============================================================================
-' Consistency check (spec 10.1 step 4)
+' Consistency check (spec 10.1 step 4) and project dates (spec 10.1 step 5).
+' The timeline dates come from qProjects_SelectedTest (IREx project
+' information): the IO Code Type "Main" row for the Main IO. The dates in
+' tblSelectedProjectMapping are the min/max of the SOA budget LOA dates; they
+' are used only when the project dates are blank, and a difference is reported
+' as a Load warning (incident 2026-10-11, project end date).
 '==============================================================================
 Private Function CheckTables(ByVal src As String, ByVal mainIO As String, _
         ByRef dispName As String, ByRef srcName As String, _
         ByRef pStart As Date, ByRef pEnd As Date, ByRef msg As String) As Boolean
     Dim lo As ListObject, v As Variant, i As Long, nRows As Long, found As Boolean
     Dim cSrc As Long, cDisp As Long, cIO As Long, cMain As Long, cStart As Long, cEnd As Long
+    Dim mapStart As Date, mapEnd As Date, hasMapDates As Boolean, hasProjDates As Boolean
 
+    dateNote = ""
     v = TableData("tblSelectedProjectMapping", lo)
     If Not IsEmpty(v) Then
         cSrc = ColIndex(lo, "Source Project Name")
@@ -286,11 +295,7 @@ Private Function CheckTables(ByVal src As String, ByVal mainIO As String, _
                     found = True
                     dispName = CleanText(v(i, cDisp))
                     srcName = CleanText(v(i, cSrc))
-                    If Not ToDate(v(i, cStart), pStart) Or Not ToDate(v(i, cEnd), pEnd) Then
-                        msg = "Project Start or Project End is missing for " & src & _
-                              " in tblSelectedProjectMapping."
-                        Exit Function
-                    End If
+                    hasMapDates = ToDate(v(i, cStart), mapStart) And ToDate(v(i, cEnd), mapEnd)
                 End If
             End If
         Next i
@@ -301,6 +306,29 @@ Private Function CheckTables(ByVal src As String, ByVal mainIO As String, _
     End If
     If Not found Then
         msg = "tblSelectedProjectMapping has no Main IO = Yes row for " & mainIO & "."
+        Exit Function
+    End If
+
+    hasProjDates = ProjectDates(mainIO, pStart, pEnd)
+    If hasProjDates Then
+        If hasMapDates Then
+            If mapStart <> pStart Or mapEnd <> pEnd Then
+                dateNote = "The SOA budget LOA dates (" & Format$(mapStart, "d mmm yyyy") & " - " & _
+                    Format$(mapEnd, "d mmm yyyy") & ") differ from the project dates in " & _
+                    "qProjects_SelectedTest (" & Format$(pStart, "d mmm yyyy") & " - " & _
+                    Format$(pEnd, "d mmm yyyy") & "). The timeline uses the project dates; " & _
+                    "update the LOA dates in the SOA file if they are out of date."
+            End If
+        End If
+    ElseIf hasMapDates Then
+        pStart = mapStart
+        pEnd = mapEnd
+        dateNote = "qProjects_SelectedTest has no Project Start/End for the Main IO " & mainIO & _
+            ", so the timeline uses the SOA budget LOA dates (" & Format$(pStart, "d mmm yyyy") & _
+            " - " & Format$(pEnd, "d mmm yyyy") & "). Check the project dates in IREx."
+    Else
+        msg = "Project Start or Project End is missing for " & src & _
+              " in qProjects_SelectedTest and tblSelectedProjectMapping."
         Exit Function
     End If
     If pEnd < pStart Then
@@ -319,6 +347,30 @@ Private Function CheckTables(ByVal src As String, ByVal mainIO As String, _
     If Not CheckGroup("qProjects_SelectedTest", dispName, msg) Then Exit Function
     If Not CheckGroup(MANPOWER_TABLE, srcName, msg) Then Exit Function
     CheckTables = True
+End Function
+
+' Project Start/End from qProjects_SelectedTest: the IO Code Type "Main" row
+' whose IO Code is the Main IO, otherwise the first IO Code Type "Main" row.
+' Returns False when no such row has both dates.
+Private Function ProjectDates(ByVal mainIO As String, ByRef pStart As Date, ByRef pEnd As Date) As Boolean
+    Dim lo As ListObject, v As Variant, i As Long, pass As Long
+    Dim cIO As Long, cType As Long, cStart As Long, cEnd As Long
+    v = TableData("qProjects_SelectedTest", lo)
+    If IsEmpty(v) Then Exit Function
+    cIO = ColIndex(lo, "IO Code")
+    cType = ColIndex(lo, "IO Code Type")
+    cStart = ColIndex(lo, "Project Start")
+    cEnd = ColIndex(lo, "Project End")
+    For pass = 1 To 2
+        For i = 1 To UBound(v, 1)
+            If SameText(v(i, cType), "Main") And (pass = 2 Or SameText(v(i, cIO), mainIO)) Then
+                If ToDate(v(i, cStart), pStart) And ToDate(v(i, cEnd), pEnd) Then
+                    ProjectDates = True
+                    Exit Function
+                End If
+            End If
+        Next i
+    Next pass
 End Function
 
 Private Function CheckGroup(ByVal tableName As String, ByVal expected As String, _

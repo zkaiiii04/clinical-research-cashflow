@@ -314,8 +314,11 @@ def main(old_path, new_path):
         if d[ref].value != f:
             problems.append("Main_Dashboard!%s = %r" % (ref, d[ref].value))
     for ref in ("C7", "C8"):
-        if "tblSelectedProjectMapping" not in str(d[ref].value):
-            problems.append("Main_Dashboard!%s not repointed" % ref)
+        f = str(d[ref].value)
+        # Project dates from qProjects_SelectedTest first; the mapping (SOA LOA dates) only as fallback.
+        if not (f.find("qProjects_SelectedTest[") != -1 and
+                -1 < f.find("qProjects_SelectedTest[") < f.find("tblSelectedProjectMapping[")):
+            problems.append("Main_Dashboard!%s does not take the project dates from qProjects_SelectedTest" % ref)
     if "tblActualsSelectedTest[Posting Month]" not in str(d["C9"].value):
         problems.append("Main_Dashboard!C9 not repointed")
     for ref in ("B5", "C5", "L14"):

@@ -433,12 +433,41 @@ def as_date(v):
     return dt.date(v.year, v.month, 1) if v is not None else None
 
 
+def to_date(v):
+    if v is None:
+        return None
+    return v.date() if isinstance(v, dt.datetime) else v
+
+
+def choose_dates(main_io, map_dates, projects):
+    """Same rule as modTimeline.CheckTables/ProjectDates: the project dates come
+    from qProjects_SelectedTest (the IO Code Type "Main" row for the Main IO,
+    else the first "Main" row); the mapping (SOA budget LOA) dates are only a
+    fallback. projects = [(IO Code, IO Code Type, Project Start, Project End)].
+    Returns (start, end, note)."""
+    for pass_ in (1, 2):
+        for io, typ, s, e in projects:
+            if str(typ or "").strip().upper() == "MAIN" and (pass_ == 2 or str(io or "").strip().upper() == main_io.upper()):
+                if s is not None and e is not None:
+                    s, e = to_date(s), to_date(e)
+                    note = ""
+                    if map_dates[0] is not None and (to_date(map_dates[0]), to_date(map_dates[1])) != (s, e):
+                        note = "SOA budget LOA dates differ from the project dates"
+                    return s, e, note
+    if map_dates[0] is not None and map_dates[1] is not None:
+        return to_date(map_dates[0]), to_date(map_dates[1]), "project dates missing; using SOA budget LOA dates"
+    raise ValueError("no project dates")
+
+
 def build_case(src_path, fy_basis):
     wb = openpyxl.load_workbook(src_path, data_only=True)
     mapping = table_rows(wb, "PQ_SelectedProjectMapping", "tblSelectedProjectMapping",
-                         ["Main IO", "Project Start", "Project End"])
+                         ["Main IO", "IO Code", "Project Start", "Project End"])
     main = [m for m in mapping if m[0] == "Yes"][0]
-    g = Grid(main[1].date(), main[2].date(), fy_basis)
+    projects = table_rows(wb, "PQ_Projects_SelectedTest", "qProjects_SelectedTest",
+                          ["IO Code", "IO Code Type", "Project Start", "Project End"])
+    p_start, p_end, _ = choose_dates(main[1], (main[2], main[3]), projects)
+    g = Grid(p_start, p_end, fy_basis)
     g.read_budget(table_rows(wb, "PQ_Budget_SelectedTest", "tblBudgetSelectedTest",
                              ["IO Code", "Expense Category", "Budget Description", "Revised Budget ($)"]))
     mp = [(io, sg, as_date(m), fte, cat, amt, st) for io, sg, m, fte, cat, amt, st in table_rows(
@@ -486,6 +515,60 @@ def check(cond, label, problems):
     print(("ok   " if cond else "FAIL ") + label)
     if not cond:
         problems.append(label)
+
+
+def tdcs_case(scratch, problems):
+    """Regression for incident 2026-10-11 (project end date), using the tDCS
+    figures from the user's v0.9 workbook: SOA budget LOA dates 1 Jan 2025 -
+    31 Dec 2026 in tblSelectedProjectMapping, IREx project dates 1 Jan 2025 -
+    30 Sep 2027 in qProjects_SelectedTest. The timeline must run to Sep 2027
+    with no manpower months pushed onto an Unmatched row."""
+    io = "TF24HIP134MP"
+    p_start, p_end, note = choose_dates("TF24HIP134", (dt.date(2025, 1, 1), dt.date(2026, 12, 31)),
+                                        [("TF24HIP134", "Main", dt.datetime(2025, 1, 1), dt.datetime(2027, 9, 30))])
+    check((p_start, p_end) == (dt.date(2025, 1, 1), dt.date(2027, 9, 30)),
+          "tDCS: timeline uses the project dates (1 Jan 2025 - 30 Sep 2027)", problems)
+    check(note != "", "tDCS: SOA LOA vs project date difference is reported", problems)
+    fb = choose_dates("TF24HIP134", (dt.date(2025, 1, 1), dt.date(2026, 12, 31)),
+                      [("TF24HIP134", "Main", None, None)])
+    check(fb[:2] == (dt.date(2025, 1, 1), dt.date(2026, 12, 31)) and fb[2] != "",
+          "Fallback: blank project dates -> SOA LOA dates, with a note", problems)
+
+    ahs_rate, ra_rate = 7433.3333, 6916.6667
+    mp = []
+    m = dt.date(2025, 8, 1)
+    for _ in range(15):                                   # AHS (OT/PT): Aug 25 - Oct 26, 0.1 FTE
+        mp.append((io, "Allied Health / Nurse", m, 0.1, "AHS (OT/PT)", 0.1 * ahs_rate, "Rate matched"))
+        m = dt.date(m.year + (m.month == 12), m.month % 12 + 1, 1)
+    ra_fte = [0.1, 0.1, 0.2, 0.1, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.2, 0.2, 0.1, 0.1, 0.1,
+              0.1, 0.1, 0.1, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6]  # RA: Oct 25 - Sep 27
+    m = dt.date(2025, 10, 1)
+    for f in ra_fte:
+        mp.append((io, "Research Assistant", m, f, "RA", f * ra_rate, "Rate matched"))
+        m = dt.date(m.year + (m.month == 12), m.month % 12 + 1, 1)
+
+    g = Grid(p_start, p_end, True)
+    g.read_budget([("TF24HIP134", "MP", "OT", 42000.0), ("TF24HIP134", "MP", "RA", 10800.0)])
+    g.read_manpower(mp, {})
+    g.read_actuals([])
+    g.read_store([])
+    g.sort_lines()
+    months = [c for c in g.cols[1:] if c[0] == "M"]
+    check(len(months) == 33, "tDCS: 33 month columns (Jan 2025 - Sep 2027)", problems)
+    check(not any(ln["kind"] == "MP_OOR" for ln in g.ord), "tDCS: no Unmatched manpower row", problems)
+    ra = [ln for ln in g.ord if ln["label"] == "RA (Projected)"]
+    ahs = [ln for ln in g.ord if ln["label"] == "AHS (OT/PT) (Projected)"]
+    check(len(ra) == 1 and abs(sum(v or 0 for v in ra[0]["vals"]) - 43575) < 0.05,
+          "tDCS: RA (Projected) months sum to 43,575", problems)
+    check(len(ahs) == 1 and abs(sum(v or 0 for v in ahs[0]["vals"]) - 11150) < 0.05,
+          "tDCS: AHS (OT/PT) (Projected) months sum to 11,150", problems)
+    ws = recalc(g, scratch, "tdcs")
+    pt = 2 + OFF_FIRST + g.p_col - 1
+    mp_row = g.rows[BLOCKS.index("MP") + 1]["P"]
+    check(abs((ws.cell(row=mp_row, column=pt).value or 0) - 54725) < 0.05,
+          "tDCS: MP Projected Project Total = 54,725", problems)
+    check([y[0] for y in g.y[1:]] == ["FY24 Total", "FY25 Total", "FY26 Total", "FY27 Total"],
+          "tDCS: FY24..FY27 totals", problems)
 
 
 def main(src, scratch):
@@ -576,6 +659,8 @@ def main(src, scratch):
     pt2 = fc + g2.p_col - 1
     check(abs((ws2.cell(row=g2.rows[6]["A"], column=pt2).value or 0) - act_total) < 0.01,
           "CY: Actual PROJECT TOTAL unchanged", problems)
+
+    tdcs_case(scratch, problems)
 
     print("RESULT:", "PASS" if not problems else "FAIL (%d)" % len(problems))
     return 0 if not problems else 1

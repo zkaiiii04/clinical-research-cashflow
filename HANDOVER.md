@@ -2,35 +2,29 @@
 
 **From session:** 11 October 2026 (design discovery → spec approval)
 **Where:** `main` branch of `zkaiiii04/clinical-research-cashflow` (renamed from `wardrobe-atlas` on 11 Oct 2026; GitHub redirects the old name). Design work was merged in PR #1; the unrelated Wardrobe Atlas page was removed in PR #2.
-**Status:** spec **v1.0 approved** (v1.0.2). v0.9_working rebuilt 11 Oct 2026 after the queryTable9 repair fix; the user then loaded it in desktop Excel with no repair prompt. **Open defect: the timeline uses the SOA budget LOA dates instead of the project dates, so months after the LOA end drop out of the grid (found on tDCS). Fix it first (§0).** UAT continues after that (§9).
+**Status:** spec **v1.0 approved** (v1.0.3). v0.9_working rebuilt 11 Oct 2026. The queryTable9 repair is fixed (the user's copy loads cleanly). The **timeline end-date defect is fixed** (§0); waiting for the user's tDCS re-test (UAT test 16), then UAT continues (§9).
 
 ---
 
-## 0. START HERE: timeline end date defect (logged 11 Oct 2026, not fixed)
+## 0. START HERE: timeline end date defect, fixed 11 Oct 2026; awaiting the user's re-test
 
-Full write-up: **`docs/incidents/2026-10-11-v0.9-project-end-date.md`**.
+Full write-up: **`docs/incidents/2026-10-11-v0.9-project-end-date.md`** (cause, fix, tests).
 
-**What the user saw (tDCS, Main IO TF24HIP134):** the timeline stops at Dec 2026. The RA line is missing Jan–Sep 2027, and 26,975 sits on "Unmatched: manpower months outside project dates". The MP Projected Project Total (54,725) and `qManpower_SelectedTest` are correct.
+- **Cause:** the grid and C7/C8 used `tblSelectedProjectMapping` dates, which are the min/max of the SOA budget LOA dates. For tDCS that was 31 Dec 2026, from a stale column in the source file (found by the user). The real project end is 30 Sep 2027.
+- **Fix:**
+  - `modTimeline.ProjectDates` reads `qProjects_SelectedTest` (IO Code Type "Main");
+  - the mapping dates are only a fallback;
+  - Load warns when the two differ;
+  - C7/C8 are repointed in the build;
+  - the verifier checks C7/C8;
+  - the grid model has a tDCS regression (43/43 pass);
+  - spec v1.0.3; UAT test 16.
+- **Package:** rebuilt from v0.8; verifier PASS; SHA-256 in `release/CashFlow_v0.9_package.zip` → `README_FIRST.txt`.
 
-**Cause:** the grid months and C7/C8 take Project Start/End from `tblSelectedProjectMapping`. Those are the min/max of the **SOA budget LOA dates** (`qProjectIOCatalogue`), which give 1 Jan 2025 – 31 Dec 2026. The real project dates are in **`qProjects_SelectedTest`** (IREx): 1 Jan 2025 – 30 Sep 2027. This was a spec error (§10.1 step 5, §12).
-
-**Do this first:**
-1. Ask the user:
-   - to upload the current v0.9_working, or v0.8 for a rebuild;
-   - whether the macros are already installed in their copy (this decides whether they re-import `modTimeline.bas` or take a whole rebuilt package);
-   - whether they've checked the **OT vs RA** question below in IREx.
-2. Change `vba/modTimeline.bas`:
-   - read dates from `qProjects_SelectedTest` (the IO Code Type "Main" row for F6), falling back to the mapping table only when those are blank;
-   - warn at Load when the SOA LOA dates and the project dates differ.
-3. Change `build/build_v09_working.py` so C7/C8 point to `qProjects_SelectedTest`.
-4. Add a regression case to `tests/grid_model.py`: data like tDCS should give 33 months (Jan 25 – Sep 27), no Unmatched manpower row, the RA line at 43,575 across its months, and MP Projected = 54,725.
-5. Update spec §10.1 and §12, `CLAUDE.md`, the technical specification and the build log.
-6. Rebuild from v0.8, verify, and repackage with a new SHA-256.
-7. Re-test tDCS with the user, then carry on with UAT (§9).
-
-**Open question for the user (source data):** the manpower table shows **RA = 43,575** (`DB_RA_Distrib`) and **AHS (OT/PT) = 11,150** (`DB_AHS_Nurse_Distrib`). The user expected the reverse (OT ≈ 43,575, RA ≈ 11,150; budget OT 42,000 / RA 10,800). The staff group comes from which IREx sheet a row is on. Either the tDCS rows are on the wrong sheets in IREx, or the labels were crossed. This isn't a workbook bug unless the source proves otherwise.
-
-**Status of the queryTable9 incident (§0b):** the uploaded v0.9 (v0.8 manpower names) opened and loaded in desktop Excel without a repair prompt. Confirm with the user and close it.
+**Next session:**
+1. Ask whether the user re-imported `vba/modTimeline.bas` and pasted the new C7/C8 formulas, or switched to the rebuilt package. Then ask for UAT test 16 (tDCS) and the rest of the UAT results.
+2. **OT vs RA (source data, still open):** tDCS shows RA = 43,575 (`DB_RA_Distrib`) and AHS (OT/PT) = 11,150 (`DB_AHS_Nurse_Distrib`), the reverse of what the user expected. Ask what they found in IREx. A sheet move changes the amounts, because the OT person would then be priced at their AHS grade.
+3. Close this incident and the queryTable9 one once confirmed.
 
 ## 0b. v0.9 repair error (queryTable9), fixed 11 Oct 2026; the user's later upload suggests it's resolved
 
@@ -149,7 +143,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 
 ## 8. Suggested opening message for the next chat
 
-> Continue the Clinical Research Cash Flow dashboard work on branch `claude/cash-flow-projection-dashboard-x4eqkf` of zkaiiii04/clinical-research-cashflow. Read `HANDOVER.md` (start at §0), `CLAUDE.md` and `docs/incidents/2026-10-11-v0.9-project-end-date.md`. I've uploaded my current v0.9_working (and v0.8). Fix the timeline end-date defect, rebuild, and tell me what to re-import.
+> Continue the Clinical Research Cash Flow dashboard work in zkaiiii04/clinical-research-cashflow (main). Read `HANDOVER.md` (start at §0) and `CLAUDE.md`. Here are my UAT results (including test 16, tDCS) and my current v0.9_working.
 
 ## 9. Build session (11 Oct 2026): what was done and what's next
 

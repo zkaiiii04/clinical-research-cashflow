@@ -187,6 +187,16 @@ Expected:
 - IO·Code reads `TF25HIP136MP` / `TF25HIP136OM` / `TF25HIP136EQ` / `TF25HIP136CO`, merged down each run.
 - Its payroll actuals coded OM show in **OM Actual**.
 
+### 16. Project dates come from the project, not the SOA budget LOA (tDCS)
+1. Select tDCS (Main IO `TF24HIP134`) and click Load Project.
+
+Expected (if the SOA budget LOA dates for tDCS still end 31 Dec 2026; if you've corrected them in the SOA file, the warning simply doesn't appear):
+- A Load warning: "The SOA budget LOA dates (1 Jan 2025 - 31 Dec 2026) differ from the project dates in qProjects_SelectedTest (1 Jan 2025 - 30 Sep 2027). The timeline uses the project dates…".
+- C7/C8 show 1 Jan 2025 and 30 Sep 2027.
+- The timeline runs Jan 2025 to Sep 2027 (33 months; FY24 Total to FY27 Total at the far right).
+- No "Unmatched: manpower months outside project dates" row.
+- The two manpower lines' Project Totals add up to MP Projected, and MP Projected equals the total of `Projected Amount ($)` in `qManpower_SelectedTest` (54,725 with the data on 11 Oct 2026).
+
 ---
 
 ## What to send back

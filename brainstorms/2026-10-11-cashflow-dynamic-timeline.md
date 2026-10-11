@@ -10,7 +10,8 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Zero-net lines:** always hidden.
 - **Ad-hoc lines:** not allowed; budget lines only.
 - **Categories:** MP, OM, EQ, CO, OTHER (OTHER is separate; shown when budget lines exist).
-- **MP line identity:** macro groups by Staff Group + IO Code only (Q25b); label 'Staff Group | IO'; no PQ change.
+- **MP line identity:** macro groups by Staff Group + IO Code only (Q25b); AHS/Nurse split into 'Allied Health' and 'Nurse' via rate category list (Q27b); label 'Staff Group | IO'; no PQ change.
+- **Charge-to:** admin table maps manpower lines to MP/OM; OM-charged manpower shows as locked row in OM block (Q27c).
 - **MP structure:** (option 3, 'for now') MP budget lines (budget only) and manpower lines (projection) listed separately in the MP block; no mapping.
 - **MP manual entry:** none — MP read-only; manual entry only on OM/EQ/CO/OTHER budget lines.
 - **Actuals:** category level only (no line-level actuals).
@@ -207,13 +208,21 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
   - if nursing actuals have their own CodeType (a separate category) → NOT covered: projection in MP, actuals in another block.
 - Possible fix if separate: split the AHS/Nurse row by the rate's Rate Category (from qManpowerRates) and treat nursing as its own category/charge target. -> follow-up Q27.
 
+### Q27 — Nursing code, AHS/Nurse split, charge-to setting
+- (a) **Nursing actuals use CodeType MP** (SOA states this clearly) → nursing is covered by the MP-level projected-vs-actual comparison.
+- (b) **27b1 — split 'Allied Health / Nurse' into 'Allied Health' and 'Nurse' rows using the rate's Rate Selected / Rate Category**, via a small admin list of which rate categories count as nursing. No PQ change. (Since nursing is MP, this split is for clarity/labelling and for the charge-to setting, not for actuals matching.) MP line key becomes Staff Group (split) + IO Code.
+- (c) **27c1 — 'charge to' setting lives in an admin table** on a settings sheet: Source Project, Main IO, Staff Group, IO Code → Charge To (MP / OM / …). Macro reads it at Load Project; a manpower line charged to OM appears as a locked FTE × rate row in the OM block and counts in OM subtotal.
+- Limitation stated: the setting is per Staff Group + IO line, not per person. User has not yet said whether that's acceptable.
+
 ## Open flags (pending input)
-- Exact SOA CodeType for nursing actuals (MP, or a separate code — which?) -> user / finance
-- Mapping of AL / OT / B / C / D / blank codes to dashboard blocks -> user (Q25a)
-- Items 4–9 of loose-ends batch -> user
-- Confirm 'years' = 'yes' for numeric-only validation on input cells -> user
-- Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user
-- Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user
-- MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)
-- Orphaned projections when a budget description changes/disappears in source — handling? -> user (to ask)
-- "In use by" indicator / soft lock on the dashboard — wanted? -> user
+1. Charge-to granularity: OK that it's per Staff Group + IO (not per person)? Do OM-paid staff sit on a different IO? -> user
+2. List of rate categories/grades that count as 'Nurse' (for AHS/Nurse split) -> user / admin to supply
+3. How codes AL / OT / B / C / D / blank map to dashboard blocks (Q25a) -> user
+4. Confirm 'enlightened' = 'enough' → no Budget-remaining column -> user
+5. Load Project does not refresh qProjectIOCatalogue (dropdown list) — leave to Refresh All? -> user
+6. 'Dashboard loaded by <user> at <time>' notice (no lock) — wanted? -> user
+7. Variance sign: keep Actual − Projected (positive = overspend)? -> user
+8. Manpower FTE months outside project dates → MP Unmatched row, Project Total only? -> user
+9. Confirm 'years' = 'yes' for numeric-only validation on input cells -> user
+10. Anything not covered: charts, print/export, number format (whole $ vs cents), who may save -> user
+- Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

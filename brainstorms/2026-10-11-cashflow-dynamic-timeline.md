@@ -226,7 +226,14 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 9. **OK** — 'years' = 'yes': input cells numeric-only, negatives allowed.
 10. User asked what 'rate categories' means → explained (tbl_ManpowerRate Grade/Category; AHS/Nurse rows carry Rate Selected → Resolved Rate Grade + Rate Category) and asked how nurse rows can be told apart.
 
+### Q29 — How to tell Nurse from Allied Health (user supplied screenshot of DB_ManpowerRate / tbl_ManpowerRate)
+- Rate table Category values seen: **'AHS (OT/PT)'** (AH12–AH17 Jul25/Apr24 (AHS)), **'AHS'** (TA10_Jul25 (AHS)), **'RA'** (AH11–AH13 (RA)), **'Nurse'** (SN11_Jul25 (Nurse), SSN_Jul26(Nurse)), **'Admin'** (JIG11–JIG13_Jul25 (Admin)). qManpowerRates upper-cases these (e.g. 'NURSE', 'AHS (OT/PT)').
+- Conclusion: the split can use the existing **Rate Category** column — no separate admin list of grades needed. Proposed display mapping: RA → Research Assistant; AHS / AHS (OT/PT) → Allied Health; NURSE → Nurse; ADMIN → Admin; unresolved → 'Allied Health / Nurse (rate not matched)'. -> confirm (Q30).
+- Data-quality risk spotted: grade **'SSN_Jul26(Nurse)'** has no space before '(' — qManpowerRates derives Effective Period Text as text after '_' up to the first space, so this grade yields 'Jul26(Nurse)' and its effective date may fail to parse → nurse rows on that grade may not get a rate. Source fix (add the space) recommended; not a dashboard change. -> admin
+- 'Admin' category exists — if admin staff appear on DB_AHS_Nurse_Distrib they'd need their own line. -> confirm (Q30)
+
 ## Open flags (pending input)
-- How to tell Nurse rows from Allied Health rows in DB_AHS_Nurse_Distrib (rate grade/category values, or another source column) -> user / admin
+- Confirm Rate Category → display-group mapping incl. separate 'Admin' line (Q30) -> user
+- Source data fix: 'SSN_Jul26(Nurse)' grade missing space before '(' (effective-date parse risk) -> rate-table admin
 - Item 11: anything not covered (charts, print/export, number format, who may save) -> user
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

@@ -23,6 +23,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Patient reimbursement:** typed $ on the OM budget line; tblPatientReimbursement retired.
 - **Migration:** build in v0.9_working; old area + old input tables kept on hidden sheet for UAT comparison, deleted later.
 - **Past months:** projection = plan as entered; no forecast row; no locking.
+- **Protection:** sheet protected, no password; inputs unlocked + shaded; store sheet very hidden; numeric-only validation (pending confirm).
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -176,7 +177,12 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 ### Q23 — Closed (past) months
 - Captured: **Option 1 — projection stays as entered in every month**, past or future. Projected = plan; Projected vs Actual for past months shows plan vs reality. Projected Total KPI = sum of plan. No Forecast row, no locking of past months.
 
+### Q24 — Protection and input validation
+- Captured: **Option 2 — protect Main_Dashboard without a password**; only OM/EQ/CO/OTHER line-item month cells unlocked and shaded as inputs; E6/F6 selectors editable; outline +/- works under protection; hidden store sheet set to xlSheetVeryHidden. Guards against accidents, not deliberate edits.
+- Input validation: user replied "years" — interpreted as **"yes"** → decimal numbers only, negatives allowed. (Confirm.)
+
 ## Open flags (pending input)
+- Confirm 'years' = 'yes' for numeric-only validation on input cells -> user
 - Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user
 - Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user
 - MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)

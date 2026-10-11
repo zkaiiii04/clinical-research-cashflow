@@ -11,7 +11,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Ad-hoc lines:** not allowed; budget lines only.
 - **Categories:** MP, OM, EQ, CO, OTHER (OTHER is separate; shown when budget lines exist).
 - **MP line identity:** macro groups by Staff Group + IO + LOA start/end + Resolved Rate Grade; no PQ change; identical positions may merge.
-- **MP structure (REOPENED):** provisionally MP budget lines (budget only) and manpower lines (projection) listed separately in the MP block; no mapping.
+- **MP structure:** (option 3, 'for now') MP budget lines (budget only) and manpower lines (projection) listed separately in the MP block; no mapping.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -92,10 +92,12 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 
 ### Q11 — MP section structure
 - Asked: How do MP budget lines (RA, Therapist, Research Fellow) relate to manpower lines (Research Assistant, Allied Health / Nurse)?
-- STATUS: **REOPENED by user (revisiting) — previous answer below is provisional.**
-- Captured (provisional): **Both, side by side, no mapping.** Within the MP block: (a) MP budget lines from tblBudgetSelectedTest showing budget only; (b) manpower lines from qManpower_SelectedTest showing monthly projection (FTE × rate). No mapping between them is inferred.
+- STATUS: Reopened and re-confirmed: **Option 3 'for now'** (user's words).
+- Captured: **Both, side by side, no mapping.** Within the MP block: (a) MP budget lines from tblBudgetSelectedTest showing budget only; (b) manpower lines from qManpower_SelectedTest showing monthly projection (FTE × rate). No mapping between them is inferred.
+- Flags: user said 'for now' — design should leave room to move to parent/child (budget line → manpower lines via an admin mapping table) later without rework.
 
 ## Open flags (pending input)
+- MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)
 - MP row label format -> user
 - Exact SOA CodeType string used for OTHER -> user
 - Actuals in a category that has no budget lines (no rows to show them against) -> to ask

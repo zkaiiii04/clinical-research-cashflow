@@ -181,13 +181,20 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Captured: **Option 2 — protect Main_Dashboard without a password**; only OM/EQ/CO/OTHER line-item month cells unlocked and shaded as inputs; E6/F6 selectors editable; outline +/- works under protection; hidden store sheet set to xlSheetVeryHidden. Guards against accidents, not deliberate edits.
 - Input validation: user replied "years" — interpreted as **"yes"** → decimal numbers only, negatives allowed. (Confirm.)
 
+### Q25 — Loose-ends batch (partial)
+- (1) OTHER code: user: "there is one called AL, B, C, D". Catalogue check (tblProjectIOCatalogue) found Budget Code Types beyond MP/OM/EQ/CO: **AL** (D.R.E.A.M.T. (Presage)), **OT** (EEG (RESTORE 2.0)), **B, C, D** (Uptale: Grief and Loss Training), and **blank** (D.R.E.A.M.T., FHT 2.0). How these map to blocks -> follow-up Q25a.
+- (2) **Yes** — a category with actuals but no budget lines still shows its block with subtotal rows (Actual / Variance) so spend is never hidden.
+- (3) User asked how the MP row label is derived → explained; raised that Resolved Rate Grade can change month-to-month when a new rate becomes effective, which would split one position into two rows → proposed dropping grade from the grouping key -> follow-up Q25b.
+- (4)–(9) not yet answered.
+
 ## Open flags (pending input)
+- Mapping of AL / OT / B / C / D / blank codes to dashboard blocks -> user (Q25a)
+- MP grouping key: drop Resolved Rate Grade? -> user (Q25b)
+- Items 4–9 of loose-ends batch -> user
 - Confirm 'years' = 'yes' for numeric-only validation on input cells -> user
 - Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user
 - Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user
 - MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)
 - MP row label format -> user
-- Exact SOA CodeType string used for OTHER -> user
-- Actuals in a category that has no budget lines (no rows to show them against) -> to ask
 - Orphaned projections when a budget description changes/disappears in source — handling? -> user (to ask)
 - "In use by" indicator / soft lock on the dashboard — wanted? -> user

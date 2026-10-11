@@ -15,7 +15,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **MP manual entry:** none — MP read-only; manual entry only on OM/EQ/CO/OTHER budget lines.
 - **Actuals:** category level only (no line-level actuals).
 - **Rows:** line items carry budget + projection; projected-vs-actual comparison on category subtotal rows only.
-- **Columns:** months → quarter total (collapsible, colour-coded per quarter) → FY totals → Project Total.
+- **Columns:** Budget | months → quarter total (collapsible, fixed colour per quarter number) … | all FY/CY totals at far right | Project Total. No Budget-remaining column (pending confirm). Same layout for Calendar Year.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -124,7 +124,15 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Extra columns: yes** — financial-year total columns in addition to quarter totals and Project Total.
 - Flags: FY-total placement, colour scheme, and whether 'Remaining budget' column is included -> Q16.
 
+### Q16 — FY totals, colours, end columns, calendar basis
+- (a) FY totals: **all FY total columns together at the far right** (before Project Total) — "keep the month and quarter view free from clutter".
+- (b) Colours: **fixed colour per quarter number** (Q1 always same colour, Q2 another, …); months lighter tint of their quarter.
+- (c) End columns: user wrote "project total is enlightened" — interpreted as **"Project Total is enough"** → no Budget-remaining / Budget−Actual columns. (Confirm.)
+- (d) Calendar Year basis: **same layout applies** ('2026 | Q1' labels; calendar-year totals replace FY totals).
+- Resulting column order: [labels] | Budget | months + quarter totals (collapsible, colour-coded) | FY (or CY) totals | Project Total.
+
 ## Open flags (pending input)
+- Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user
 - MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)
 - MP row label format -> user
 - Exact SOA CodeType string used for OTHER -> user

@@ -2,31 +2,26 @@
 Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, formula-filled timeline on Main_Dashboard (G21:BO56) with a macro-built, project-specific, line-item timeline that supports manual projections with per-project save/load, without interfering with Power Query.
 
 ## Summary / key decisions
-(running synthesis, updated as answers come in)
+(reconciled after Q31 — this section is authoritative where earlier Q&A entries were later superseded)
 
-- **Platform:** single shared .xlsm on SharePoint, desktop Excel → VBA OK; projections stored in-workbook.
-- **Driver/data:** E6/F6 + selected-test tables (budget, manpower, actuals, mapping). KPIs repointed to new grid; C5 retired (Q22).
-- **Non-MP line grain:** one row per IO + Category + normalised Budget Description, net budget.
-- **Zero-net lines:** always hidden.
-- **Ad-hoc lines:** not allowed; budget lines only.
-- **Categories:** MP, OM, EQ, CO, OTHER (OTHER is separate; shown when budget lines exist).
-- **MP line identity:** macro groups by Staff Group + IO Code only (Q25b); rows split by the rate table's Rate Category, label = Category text as-is (AHS, AHS (OT/PT), Nurse, RA) (Q29–Q30); label 'Staff Group | IO'; no PQ change.
-- **Charge-to:** admin table maps manpower lines to MP/OM; OM-charged manpower shows as locked row in OM block (Q27c).
-- **MP structure:** (option 3, 'for now') MP budget lines (budget only) and manpower lines (projection) listed separately in the MP block; no mapping.
-- **MP manual entry:** none — MP read-only; manual entry only on OM/EQ/CO/OTHER budget lines.
-- **Actuals:** category level only (no line-level actuals).
-- **Rows:** line items carry budget + projection; projected-vs-actual comparison on category subtotal rows only.
-- **Columns:** Budget | months → quarter total (collapsible, fixed colour per quarter number) … | all FY/CY totals at far right | Project Total. No Budget-remaining column (pending confirm). Same layout for Calendar Year.
-- **Cell contents:** values for data (MP, actuals, manual inputs) + grid-local SUM/variance formulas for totals; no table SUMIFS.
-- **Trigger:** 'Load Project' button = refresh selected-test queries synchronously → consistency check → build → load saved projections. No events; no query edits.
-- **Save:** replace-this-project rows; prompt on unsaved switch; conflict warning on later save by someone else; blank not stored, 0 stored.
-- **Unmatched saved projections:** kept, shown in an 'Unmatched' row per category, counted in totals; out-of-range months in Project Total only (with note); Re-assign / Delete actions available.
-- **Patient reimbursement:** typed $ on the OM budget line; tblPatientReimbursement retired.
-- **Migration:** build in v0.9_working; old area + old input tables kept on hidden sheet for UAT comparison, deleted later.
+- **Platform:** single shared .xlsm on SharePoint, desktop Excel → VBA OK; projections stored in-workbook (very hidden store sheet).
+- **Concurrency:** simultaneous users common; dashboard itself is turn-taking (one selector, one driver). 'Dashboard loaded by <user> at <time>' notice, no lock. Saves are per-project, stamped, with conflict warning.
+- **Driver/data:** E6 Source Project + F6 Main IO; reads tblBudgetSelectedTest, qManpower_SelectedTest, tblActualsSelectedTest, tblSelectedProjectMapping. KPI cards repointed to the new grid; C5 retired.
+- **Store key:** Source Project + Main IO. Line identity for non-MP: + IO Code + Category + normalised Budget Description.
+- **Categories / blocks:** MP, OM, EQ, CO, OTHER. OTHER = every other Budget Code Type (AL, OT, B, C, D, …) with the code shown on each line; blank code shown as '(no code)'. A category with actuals but no budget lines still shows its subtotal rows.
+- **Non-MP rows:** one row per IO + Category + normalised Budget Description, net signed budget; $0-net lines always hidden; no ad-hoc lines; monthly projection typed (OM/EQ/CO/OTHER only). Patient reimbursement typed on its OM line (tblPatientReimbursement retired).
+- **MP block:** (a) MP budget lines — budget only; (b) manpower lines — read-only monthly FTE × rate. No mapping between (a) and (b) 'for now'. Manpower line key = Rate Category (as written in rate table: RA, AHS, AHS (OT/PT), Nurse) + IO Code; label 'Category | IO'. No LOA or grade in key/label. Admin not expected; if it appears, warn and still show. 'Rate not found' rows (PQ Rate Status) → warning count at Load, rows still shown.
+- **Charge-to:** admin table (Source Project, Main IO, Rate Category, IO Code → Charge To MP/OM/…) moves a manpower line into another block as a locked FTE × rate row; per line, not per person.
+- **Actuals / comparison:** actuals at category level only. Each category subtotal: Projected (sum of lines incl. Unmatched), Actual, Variance $ (Actual − Projected; positive = overspend), Variance % (blank when Projected = 0). PROJECT TOTAL rows across categories.
+- **Columns:** labels | Budget | months with a quarter total after each quarter (Excel outline: quarters collapse/expand; fixed colour per quarter number, months lighter tint; boundary quarters partial) | all FY totals at far right (CY totals when Calendar Year basis) | Project Total. No Budget-remaining column. No frozen panes.
+- **Cell contents:** plain values for data (MP, actuals, loaded projections); grid-local formulas for totals/subtotals/variances; no table SUMIFS in the grid.
+- **Buttons:** 'Load Project' (check Ready → refresh selected-test queries synchronously in order → verify all tables match E6/F6 → build → load saved projections; prompt to save unsaved edits first). 'Save Projections'. Unmatched-row Re-assign / Delete. Macro never edits queries/connections; no event-driven rebuilds; qProjectIOCatalogue left to Refresh All.
+- **Save:** replace this project's store rows only; blank not stored, 0 stored; conflict warning if someone saved after you loaded; no version history.
+- **Unmatched saved projections** (renamed/removed line, $0-net line, month outside dates): kept, shown in an 'Unmatched' row per category, counted in totals; out-of-range months in Project Total only with a cell note. Same rule for manpower months outside project dates (MP Unmatched row).
 - **Past months:** projection = plan as entered; no forecast row; no locking.
-- **Protection:** sheet protected, no password; inputs unlocked + shaded; store sheet very hidden; numeric-only validation (pending confirm).
-- **Store key:** Source Project + Main IO.
-- **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
+- **Protection:** Main_Dashboard protected, no password; input cells unlocked + shaded; numeric-only validation (negatives allowed); outline usable under protection.
+- **Formats:** whole dollars, thousands separators, negatives red in brackets; % 1 dp. No charts; no special print layout.
+- **Migration:** build in v0.9_working (v0.8 untouched). Old timeline + tblManualProjection + tblPatientReimbursement moved to a hidden comparison sheet for UAT, deleted later.
 
 - User's stated requirements (initial brief):
   1. Number of month/quarter columns computed automatically from the project; months and quarters filled in automatically (no pre-defined columns, no pre-filled formulas).
@@ -67,7 +62,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Design consequence: projection SAVE must still be safe if two people save around the same time → save/load only touches rows for the current project key; who/when stamp on each saved row. Optionally a visible "Dashboard in use by <user> since <time>" indicator (to confirm later).
 - Tension noted: Q2 said "often at once"; Q3 accepts turn-taking for the dashboard itself.
 
-### Q4 — Driving selector and data sources
+### Q4 — Driving selector and data sources  _(KPI part superseded by Q22)_
 - Asked: Which selector drives the new area and which tables does it read?
 - Captured: **E6 Source Project / F6 Main IO drives it.** Reads tblBudgetSelectedTest (budget lines), qManpower_SelectedTest (MP projection), tblActualsSelectedTest (actuals), tblSelectedProjectMapping (Project Start/End). C5 is retired for the new area.
 - KPI cards (C14, F14, F17, C17, C19) NOT repointed in this scope — they stay on original tables for now.
@@ -92,12 +87,12 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Asked: Allow projection lines not in the budget?
 - Captured: **No — budget lines only.** Manual projections can only be entered against lines present in tblBudgetSelectedTest. Unbudgeted spend needs a budget line in SOA first.
 
-### Q9 — Category set
+### Q9 — Category set  _(flags resolved by Q25/Q28: OTHER = AL/OT/B/C/D/blank)_
 - Asked: Is OTHER a real category or is OM 'Other Operating Expenses'?
 - Captured: **Keep a separate OTHER** category — some projects use it in SOA. Show it when budget lines exist for it. Categories in scope: MP, OM, EQ, CO, OTHER.
 - Flags: exact SOA CodeType value for OTHER (e.g. 'OTHER', 'OT', other?) not seen in current data -> user to confirm. Behaviour when actuals exist for a category with no budget lines -> to ask.
 
-### Q10 — Manpower line identity
+### Q10 — Manpower line identity  _(key superseded by Q25b/Q29/Q30)_
 - Asked: How to identify/label each MP line given Assignment ID / Source Row ID change per month and no name/position is extracted?
 - Captured: **Group in the macro; no PQ change.** One MP line = Staff Group + IO Code + Tag Start (LOA start) + Tag End (LOA end) + Resolved Rate Grade. qManpower_SelectedTest / fnManpowerSheet_SelectedTest stay frozen.
 - Accepted risk: two positions with identical Staff Group, IO, LOA dates and grade merge into one row (FTE and $ summed — totals still correct).
@@ -208,7 +203,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
   - if nursing actuals have their own CodeType (a separate category) → NOT covered: projection in MP, actuals in another block.
 - Possible fix if separate: split the AHS/Nurse row by the rate's Rate Category (from qManpowerRates) and treat nursing as its own category/charge target. -> follow-up Q27.
 
-### Q27 — Nursing code, AHS/Nurse split, charge-to setting
+### Q27 — Nursing code, AHS/Nurse split, charge-to setting  _(admin grade list superseded by Q29: use Rate Category)_
 - (a) **Nursing actuals use CodeType MP** (SOA states this clearly) → nursing is covered by the MP-level projected-vs-actual comparison.
 - (b) **27b1 — split 'Allied Health / Nurse' into 'Allied Health' and 'Nurse' rows using the rate's Rate Selected / Rate Category**, via a small admin list of which rate categories count as nursing. No PQ change. (Since nursing is MP, this split is for clarity/labelling and for the charge-to setting, not for actuals matching.) MP line key becomes Staff Group (split) + IO Code.
 - (c) **27c1 — 'charge to' setting lives in an admin table** on a settings sheet: Source Project, Main IO, Staff Group, IO Code → Charge To (MP / OM / …). Macro reads it at Load Project; a manpower line charged to OM appears as a locked FTE × rate row in the OM block and counts in OM subtotal.
@@ -238,6 +233,9 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - (b) **No Admin row needed** (user: "no need for admin staff to have a row") — interpreted as admin staff not expected on the manpower distribution sheets. Safeguard: if an ADMIN-category manpower row ever appears, Load Project warns and still shows it under its category label so its cost isn't lost from MP totals. (Correct if admin rows should instead be excluded.)
 - (c) User: unmatched rate is "covered in the Power Query". Verified: qManpower_SelectedTest sets Rate Status = 'Rate not found' when Monthly Rate is null (Projected Amount then blank). Dashboard relies on this; proposed light touch: Load Project shows a warning count if any loaded manpower rows are 'Rate not found' (rows not silently dropped).
 
+### Q31 — Remaining defaults (item 11)
+- Confirmed: whole-dollar format with thousands separators, negatives red in brackets; % to 1 dp. Anyone with edit access can save (stamped user + time). No charts this phase. No special print layout. Build should take seconds even for ~60-month projects.
+- Changed: **no frozen panes**.
+
 ## Open flags (pending input)
-- Item 11: anything not covered (charts, print/export, number format, who may save) -> user
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

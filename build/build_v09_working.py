@@ -29,7 +29,12 @@ What it changes (spec §4, §7, §8, §12; HANDOVER §4 steps 1-6)
   Charge To.
 * ProjectionStore (new, very hidden): tblProjectionStore, plus the grid
   layout area the macros write on each build.
-* PQManpower_SelectedTest: removes the stray =SUM(...) in row 15.
+* PQManpower_SelectedTest: removes the stray =SUM(...) in row 15, and (at the
+  user's request, 11 Oct 2026) renames the sheet PQ_Manpower_SelectedTest and
+  its table tblManpowerSelectedTest, following PQ_Budget_SelectedTest /
+  tblBudgetSelectedTest. The Power Query query keeps its name
+  (qManpower_SelectedTest), and no query reads the table, so only the table's
+  name/displayName and the sheet name change.
 * workbook.xml: new sheets and the TL_* names; full recalculation on load.
 * calcChain.xml is removed; Excel rebuilds it on the next save.
 
@@ -62,6 +67,9 @@ SETTINGS = "xl/worksheets/sheet19.xml"
 STORE = "xl/worksheets/sheet20.xml"
 T_CHARGE = "xl/tables/table18.xml"
 T_STORE = "xl/tables/table19.xml"
+T_MANPOWER = "xl/tables/table15.xml"
+MANPOWER_RENAME = {"table": ("qManpower_SelectedTest", "tblManpowerSelectedTest"),
+                   "sheet": ("PQManpower_SelectedTest", "PQ_Manpower_SelectedTest")}
 
 STORE_COLUMNS = [
     "Source Project", "Main IO", "IO Code", "Expense Category", "Budget Code",
@@ -437,9 +445,31 @@ def edit_manpower_sheet(data):
     return dump(root)
 
 
+def rename_manpower_table(data):
+    """Exact text replace, so the rest of this Power Query table part stays byte-identical."""
+    old, new = MANPOWER_RENAME["table"]
+    text = data.decode("utf-8")
+    attrs = 'name="%s" displayName="%s"'
+    if text.count(attrs % (old, old)) != 1:
+        raise SystemExit("table15.xml is not %s" % old)
+    return text.replace(attrs % (old, old), attrs % (new, new)).encode("utf-8")
+
+
+def edit_app_props(data):
+    old, new = MANPOWER_RENAME["sheet"]
+    tag = "<vt:lpstr>%s</vt:lpstr>" % old
+    text = data.decode("utf-8")
+    return text.replace(tag, "<vt:lpstr>%s</vt:lpstr>" % new).encode("utf-8")
+
+
 def edit_workbook(data):
     root = parse(data)
     sheets = root.find(M + "sheets")
+    old_sheet, new_sheet = MANPOWER_RENAME["sheet"]
+    renamed = [s for s in sheets if s.get("name") == old_sheet]
+    if len(renamed) != 1:
+        raise SystemExit("Sheet %s not found" % old_sheet)
+    renamed[0].set("name", new_sheet)
     next_id = max(int(s.get("sheetId")) for s in sheets) + 1
     for offset, (name, state) in enumerate(
             [("Legacy_Timeline", "hidden"), ("Dashboard_Settings", None),
@@ -514,6 +544,8 @@ def build(src, dst):
                                   cell_style(original_dashboard, "C12"))
     out[STORE] = make_store(sst)
     out[MANPOWER_SHEET] = edit_manpower_sheet(parts[MANPOWER_SHEET])
+    out[T_MANPOWER] = rename_manpower_table(parts[T_MANPOWER])
+    out["docProps/app.xml"] = edit_app_props(parts["docProps/app.xml"])
     out[T_CHARGE] = table_xml(25, "tblManpowerChargeTo", "A4:E5", CHARGE_COLUMNS)
     out[T_STORE] = table_xml(26, "tblProjectionStore", "A1:K2", STORE_COLUMNS)
     out["xl/worksheets/_rels/sheet1.xml.rels"] = None

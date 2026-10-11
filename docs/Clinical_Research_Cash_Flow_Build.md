@@ -138,7 +138,7 @@ v0.8 has a fixed-capacity, formula-driven timeline at `Main_Dashboard` G21:BO56:
 - `Legacy_Timeline` (hidden): a full copy of the v0.8 dashboard, still driven by its own C5, holding `tblManualProjection` and `tblPatientReimbursement`. Its two obsolete notes (G3, C5) are dropped.
 - `Dashboard_Settings`: `tblManpowerChargeTo` (A4:E5), with Charge To validated as MP/OM/EQ/CO/OTHER.
 - `ProjectionStore` (very hidden): `tblProjectionStore` (A1:K2), plus the grid layout area at M:S that the macros rewrite on each Load.
-- `PQManpower_SelectedTest`: the stray `=SUM(...)` at P15 is removed. The table stays loaded.
+- Manpower table: the stray `=SUM(...)` at P15 is removed and the table stays loaded. At the user's request, the table is renamed `qManpower_SelectedTest` → `tblManpowerSelectedTest` and the sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest`, matching the other selected-test tables. The query keeps its name; only the table's name attributes change, and no query reads that table.
 - `calcChain.xml` is removed (Excel rebuilds it), and the workbook is set to recalculate fully on open.
 
 #### Macros (`vba/`, imported by the user; `Module1` untouched)

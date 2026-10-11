@@ -25,7 +25,11 @@ import openpyxl
 EXPECTED_CHANGED = {
     "[Content_Types].xml", "xl/workbook.xml", "xl/_rels/workbook.xml.rels",
     "xl/sharedStrings.xml", "xl/worksheets/sheet1.xml", "xl/worksheets/sheet14.xml",
+    "docProps/app.xml", "xl/tables/table15.xml",
 }
+# The manpower table is renamed (user request). Its part may differ only in the
+# name/displayName attributes.
+RENAMED_TABLE = ("xl/tables/table15.xml", "qManpower_SelectedTest", "tblManpowerSelectedTest")
 EXPECTED_REMOVED = {
     "xl/calcChain.xml", "xl/comments1.xml", "xl/drawings/vmlDrawing1.vml",
     "xl/worksheets/_rels/sheet1.xml.rels",
@@ -69,9 +73,17 @@ def main(old_path, new_path):
 
     pq_parts = sorted(n for n in old if is_pq_part(n, zo))
     for n in pq_parts:
-        if n not in new or zo.read(n) != zn.read(n):
-            problems.append("Power Query part changed or missing: " + n)
-    print("Power Query parts byte-identical: %d" % len(pq_parts))
+        if n not in new:
+            problems.append("Power Query part missing: " + n)
+        elif n == RENAMED_TABLE[0]:
+            before = zo.read(n).decode("utf-8").replace(
+                'name="%s" displayName="%s"' % (RENAMED_TABLE[1], RENAMED_TABLE[1]),
+                'name="%s" displayName="%s"' % (RENAMED_TABLE[2], RENAMED_TABLE[2]))
+            if before != zn.read(n).decode("utf-8"):
+                problems.append("Manpower table part changed beyond the rename")
+        elif zo.read(n) != zn.read(n):
+            problems.append("Power Query part changed: " + n)
+    print("Power Query parts checked: %d (byte-identical except the manpower table rename)" % len(pq_parts))
 
     if old - new != EXPECTED_REMOVED:
         problems.append("Unexpected removed parts: %s" % sorted((old - new) ^ EXPECTED_REMOVED))
@@ -97,7 +109,7 @@ def main(old_path, new_path):
         "tblPatientReimbursement": ("Legacy_Timeline", "B66:H67"),
         "tblManpowerChargeTo": ("Dashboard_Settings", "A4:E5"),
         "tblProjectionStore": ("ProjectionStore", "A1:K2"),
-        "qManpower_SelectedTest": ("PQManpower_SelectedTest", "A1:R13"),
+        "tblManpowerSelectedTest": ("PQ_Manpower_SelectedTest", "A1:R13"),
     }
     for t, where in expect_tables.items():
         if tables.get(t) != where:
@@ -138,8 +150,8 @@ def main(old_path, new_path):
         problems.append("Legacy_Timeline timeline formulas missing")
     if leg["C5"].value is None:
         problems.append("Legacy_Timeline lost its C5 driver")
-    if wb["PQManpower_SelectedTest"]["P15"].value is not None:
-        problems.append("Stray SUM still in PQManpower_SelectedTest!P15")
+    if wb["PQ_Manpower_SelectedTest"]["P15"].value is not None:
+        problems.append("Stray SUM still in PQ_Manpower_SelectedTest!P15")
 
     for p in problems:
         print("PROBLEM:", p)

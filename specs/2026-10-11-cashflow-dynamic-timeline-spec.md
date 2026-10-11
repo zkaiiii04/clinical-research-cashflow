@@ -2,7 +2,7 @@
 
 **Specification v1.0 — APPROVED by the user on 11 October 2026. Build not started (user instruction: do not create the workbook yet).**
 
-**Change log:** v1.0 approval; variance uses the standard number format with no colour coding by meaning. v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
+**Change log:** v1.0.1 (11 Oct 2026, build): the manpower table is renamed `tblManpowerSelectedTest` on sheet `PQ_Manpower_SelectedTest` (user request; the query is still `qManpower_SelectedTest`). v1.0 approval; variance uses the standard number format with no colour coding by meaning. v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
 **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (not modified)
 **Build target:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`
 **Source of decisions:** `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` (Q1–Q32)
@@ -44,12 +44,12 @@ Replace the fixed timeline on `Main_Dashboard` (G21:BO56: 60 pre-formatted colum
 |---|---|---|
 | Selected project / dates | `tblSelectedProjectMapping` | Source Project Name, Project Display Name, IO Code, Budget Code Type, Main IO, Project Start, Project End |
 | Budget lines | `tblBudgetSelectedTest` | Project Group, IO Code, Expense Category, Budget Description, Revised Budget ($) |
-| Manpower projection | `qManpower_SelectedTest` (table on `PQManpower_SelectedTest`) | Project Group, IO Code, Staff Group, Month, Monthly FTE, Rate Category, Projected Amount ($), Rate Status |
+| Manpower projection | `tblManpowerSelectedTest` (table on `PQ_Manpower_SelectedTest`, loaded by query `qManpower_SelectedTest`) | Project Group, IO Code, Staff Group, Month, Monthly FTE, Rate Category, Projected Amount ($), Rate Status |
 | Actuals | `tblActualsSelectedTest` | Project Group, Expense Category, Posting Month, Actual Amount ($) |
 | Selector | `Main_Dashboard!E6`, `F6`, `G6`; `tblProjectSelection` | Source Project, Main IO Code, Setup Status |
 | Calendar basis | `Main_Dashboard!C6` | "Financial Year" / "Calendar Year" |
 
-**Dependency note:** `qManpower_SelectedTest` is currently **loaded to a sheet**. The documents describe it as connection-only, but the macro needs it loaded, so it must stay loaded. The stray `=SUM(...)` formula under that table (row 15) should be moved above the table or deleted, so that a longer manpower result doesn't run into it.
+**Dependency note:** the manpower query's table (`tblManpowerSelectedTest`) is **loaded to a sheet**. The documents describe it as connection-only, but the macro needs it loaded, so it must stay loaded. The stray `=SUM(...)` formula under that table (row 15) should be moved above the table or deleted, so that a longer manpower result doesn't run into it.
 
 ## 5. Grid layout
 
@@ -203,7 +203,7 @@ All macros go in new standard modules (`modTimeline`, `modStore`). The existing 
 1. If there are unsaved edits for the currently loaded project, ask **"Save changes to <project> first? Yes / No / Cancel"**.
 2. Check that `G6` = "Ready". If not, show the status message and stop.
 3. Refresh **only** these loaded tables, one at a time and waiting for each to finish:
-   `tblSelectedProjectMapping` → `tblBudgetSelectedTest` → `tblActualsSelectedTest` → `qProjects_SelectedTest` → `qManpower_SelectedTest`.
+   `tblSelectedProjectMapping` → `tblBudgetSelectedTest` → `tblActualsSelectedTest` → `qProjects_SelectedTest` → `tblManpowerSelectedTest`.
    - Each table's original background-refresh setting is saved first and put back afterwards.
    - `qProjectIOCatalogue` is **not** refreshed here (Refresh All covers it).
 4. **Consistency check.** Every refreshed table must contain only the selected project:

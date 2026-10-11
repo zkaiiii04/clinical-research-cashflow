@@ -174,6 +174,10 @@ Public Sub ReassignUnmatched()
         "Re-assign unmatched", Type:=8)
     On Error GoTo Fail
     If target Is Nothing Then Exit Sub
+    If target.Worksheet.Name <> modTimeline.DASH_SHEET Then
+        MsgBox "Click a budget line on " & modTimeline.DASH_SHEET & ".", vbExclamation, "Re-assign unmatched"
+        Exit Sub
+    End If
     tgt = LayoutIndexOfRow(lay, nLay, target.Cells(1, 1).Row)
     If tgt = 0 Then
         MsgBox "That cell isn't on a budget line.", vbExclamation, "Re-assign unmatched"

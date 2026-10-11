@@ -135,7 +135,7 @@ Retain: Project Group, IO Code, Staff Group, Assignment ID, Item Description, Al
 #### 5.6 Load and promotion controls
 
 - `fnManpowerSheet_SelectedTest` and `qManpower_SelectedTest` remain parallel test objects.
-- **`qManpower_SelectedTest` is loaded to the `PQManpower_SelectedTest` sheet and must stay loaded**, because the dashboard macro reads it. This corrects earlier notes that described it as connection-only. A stray `=SUM(...)` formula under the table (row 15) must be moved or removed.
+- **`qManpower_SelectedTest` is loaded to a sheet and must stay loaded** (v0.9: table `tblManpowerSelectedTest` on sheet `PQ_Manpower_SelectedTest`, renamed from `qManpower_SelectedTest` / `PQManpower_SelectedTest`), because the dashboard macro reads it. This corrects earlier notes that described it as connection-only. A stray `=SUM(...)` formula under the table (row 15) must be moved or removed.
 - Original `fnManpowerSheet`, `qManpower`, and `tblManpower` remain unchanged.
 - Temporary inspection queries may be deleted after dependency verification.
 - Promotion is deferred until after the dashboard build and UAT.
@@ -159,7 +159,7 @@ This replaces the v0.8 fixed-capacity, formula-driven timeline (G21:BO56). Full 
 #### 6.1 Inputs and driver
 
 - Driver: E6 Source Project + F6 Main IO. Project key = Source Project + Main IO.
-- Reads `tblSelectedProjectMapping` (dates, from the Main IO row), `tblBudgetSelectedTest`, `qManpower_SelectedTest` and `tblActualsSelectedTest`.
+- Reads `tblSelectedProjectMapping` (dates, from the Main IO row), `tblBudgetSelectedTest`, `tblManpowerSelectedTest` and `tblActualsSelectedTest`.
 
 #### 6.2 Macros (new modules `modTimeline`, `modStore`; `Module1` untouched)
 

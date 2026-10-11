@@ -27,7 +27,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 ## 3. What was decided (one screen)
 
 - **Platform:** one shared `.xlsm` on SharePoint, desktop Excel. Several users at once, but only one drives the dashboard at a time.
-- **Driver:** E6 Source Project + F6 Main IO. The timeline reads `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `qManpower_SelectedTest` and `tblActualsSelectedTest`. C5 is retired. The KPI cards are repointed to the grid totals.
+- **Driver:** E6 Source Project + F6 Main IO. The timeline reads `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `tblManpowerSelectedTest` (v0.8 name: `qManpower_SelectedTest`) and `tblActualsSelectedTest`. C5 is retired. The KPI cards are repointed to the grid totals.
 - **Load Project:** checks Ready → refreshes only those 5 tables synchronously → checks they all match E6/F6 → builds the grid sized to the project → loads saved projections → writes the "loaded by" notice. **Never edits queries**, and there are no event handlers.
 - **Columns:** Line | IO·Code | Budget | months + a quarter total after each quarter (collapsible outline, fixed colour per quarter number) | all FY/CY totals at the far right | Project Total. No Budget-remaining column, no frozen panes.
 - **IO·Code:** the IO with the budget code joined, no space (`TF25HIP136OM`). It's merged vertically across consecutive identical values.
@@ -109,6 +109,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
   2. Fix what fails. Re-run `tests/grid_model.py` if the grid logic changes, and keep it in step with `modTimeline.bas`.
   3. For test 13, run `python3 -I build/compare_pq.py <v0.8> <user's saved v0.9>`.
   4. After UAT: promote the selected-test queries one at a time (CLAUDE.md business rules), then delete `Legacy_Timeline`.
+- **Renamed at the user's request:** the manpower table `qManpower_SelectedTest` → `tblManpowerSelectedTest`, and its sheet `PQManpower_SelectedTest` → `PQ_Manpower_SelectedTest`. The query keeps its name. `compare_pq.py` knows about the rename.
 - **Gotchas:**
   - The `.bas` files must stay ASCII with CRLF line endings. Unicode labels use `ChrW()`.
   - ThisWorkbook code has to be pasted, not imported.

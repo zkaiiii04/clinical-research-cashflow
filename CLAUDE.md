@@ -46,7 +46,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
   - `tblBudgetSelectedTest` (sheet `PQ_Budget_SelectedTest`)
   - `tblActualsSelectedTest` (`PQ_Actuals_SelectedTest`)
   - `qProjects_SelectedTest` (`PQ_Projects_SelectedTest`)
-  - `qManpower_SelectedTest` (sheet `PQManpower_SelectedTest`). **It is loaded to a sheet, not connection-only as older docs said, and must stay loaded.**
+  - `tblManpowerSelectedTest` (sheet `PQ_Manpower_SelectedTest`), loaded by the query `qManpower_SelectedTest`. **It is loaded to a sheet, not connection-only as older docs said, and must stay loaded.** In v0.8 the table was named `qManpower_SelectedTest` on sheet `PQManpower_SelectedTest`; the user had both renamed in v0.9_working to match the other selected-test tables.
 - **VBA:** only `Module1` (`Install_All_SharePoint_Queries`). There are no event handlers.
 - **Legacy dashboard pieces (v0.8), retired in v0.9_working and kept on the hidden `Legacy_Timeline` sheet for UAT:** the fixed 60-column timeline at `Main_Dashboard` G21:BO56, `tblManualProjection` (B59:G60), `tblPatientReimbursement` (B66:H67), and the C5 Project Display Name selector.
 
@@ -64,7 +64,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 
 - **Load Project button:**
   1. Check Setup Status is Ready.
-  2. Refresh only `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `tblActualsSelectedTest`, `qProjects_SelectedTest` and `qManpower_SelectedTest`, synchronously.
+  2. Refresh only `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `tblActualsSelectedTest`, `qProjects_SelectedTest` and `tblManpowerSelectedTest`, synchronously.
   3. Check that every table shows the E6/F6 project.
   4. Build the grid.
   5. Load the saved projections.
@@ -112,7 +112,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 - Catalogue Budget Code Types: MP, OM, EQ, CO, AL, OT, B, C, D, and blank.
 - `tbl_ManpowerRate` Category values: `AHS (OT/PT)`, `AHS`, `RA`, `Nurse`, `Admin`. The grade `SSN_Jul26 (Nurse)` was missing a space before "(", which breaks effective-date parsing; **the user fixed this in the source**.
 - The saved snapshots in v0.8 come from different refreshes: budget, actuals and projects show Esko Combo, while mapping and manpower show 3D Gait. Always refresh before reconciling.
-- A stray `=SUM(...)` formula sat under `qManpower_SelectedTest` (sheet row 15). It is removed in v0.9_working.
+- A stray `=SUM(...)` formula sat under the manpower table (sheet row 15). It is removed in v0.9_working.
 
 ## Acceptance checkpoints (HoW2.0 - 3D Gait)
 

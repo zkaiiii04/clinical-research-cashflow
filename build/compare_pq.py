@@ -16,6 +16,10 @@ import zipfile
 
 from verify_v09_working import m_code
 
+# Agreed renames since v0.8 (table name, sheet name): old -> new
+RENAMES = {"qManpower_SelectedTest": "tblManpowerSelectedTest",
+           "PQManpower_SelectedTest": "PQ_Manpower_SelectedTest"}
+
 
 def connections(z):
     if "xl/connections.xml" not in z.namelist():
@@ -45,7 +49,8 @@ def query_tables(z):
                 part = "xl/tables/" + target.split("tables/")[-1]
                 t = z.read(part).decode("utf-8")
                 if 'tableType="queryTable"' in t:
-                    out[re.search(r' name="([^"]+)"', t).group(1)] = name
+                    tname = re.search(r' name="([^"]+)"', t).group(1)
+                    out[RENAMES.get(tname, tname)] = RENAMES.get(name, name)
     return out
 
 

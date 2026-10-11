@@ -124,7 +124,7 @@ Fail:
 End Sub
 
 ' Refreshes tblSelectedProjectMapping, tblBudgetSelectedTest,
-' tblActualsSelectedTest, qProjects_SelectedTest and qManpower_SelectedTest,
+' tblActualsSelectedTest, qProjects_SelectedTest and tblManpowerSelectedTest,
 ' in that order, synchronously. Each connection's background-refresh setting is
 ' saved first and put back afterwards. qProjectIOCatalogue is not refreshed.
 Private Function RefreshSelectedTables(ByRef msg As String) As Boolean
@@ -132,7 +132,7 @@ Private Function RefreshSelectedTables(ByRef msg As String) As Boolean
     Dim hadBg As Boolean, bg As Boolean, errNo As Long, errDesc As String
 
     tblNames = Array("tblSelectedProjectMapping", "tblBudgetSelectedTest", _
-                  "tblActualsSelectedTest", "qProjects_SelectedTest", "qManpower_SelectedTest")
+                  "tblActualsSelectedTest", "qProjects_SelectedTest", "tblManpowerSelectedTest")
     For i = LBound(tblNames) To UBound(tblNames)
         Set lo = FindTable(CStr(tblNames(i)))
         If lo Is Nothing Then
@@ -205,11 +205,13 @@ Public Function BuildGrid(ByVal isLoad As Boolean) As Boolean
 
     ' 5-7. Grid, saved projections, notice, session state
     WriteGrid ws, src, mainIO, dispName
-    ws.Range("E7").Value = "Dashboard loaded by " & Application.UserName & " at " & _
-                          Format$(Now, "d mmm yyyy h:mm AM/PM")
-    ws.Range("E7").Font.Italic = True
-    ws.Range("C10").Value = Now
-    ws.Range("C10").NumberFormat = "dd mmm yyyy hh:mm"
+    If isLoad Then
+        ws.Range("E7").Value = "Dashboard loaded by " & Application.UserName & " at " & _
+                              Format$(Now, "d mmm yyyy h:mm AM/PM")
+        ws.Range("E7").Font.Italic = True
+        ws.Range("C10").Value = Now
+        ws.Range("C10").NumberFormat = "dd mmm yyyy hh:mm"
+    End If
     modStore.SetSession src, mainIO
     ProtectDashboard
     EndWork
@@ -220,17 +222,21 @@ Public Function BuildGrid(ByVal isLoad As Boolean) As Boolean
     Exit Function
 Fail:
     msg = Err.Description
-    If started Then
-        On Error Resume Next
-        ResetKpiNames
-        modStore.SetSession "", ""
-        ws.Range("E7").Value = "Timeline build failed. Click Load Project again."
-        ProtectDashboard
-        EndWork
-    End If
+    If started Then CleanupAfterFail ws
     Application.StatusBar = False
     MsgBox "Building the timeline stopped: " & msg, vbExclamation, "Load Project"
 End Function
+
+' Runs outside the error handler so its own On Error Resume Next works and
+' Excel's calculation / screen settings are always restored.
+Private Sub CleanupAfterFail(ByVal ws As Worksheet)
+    On Error Resume Next
+    ResetKpiNames
+    modStore.SetSession "", ""
+    ws.Range("E7").Value = "Timeline build failed. Click Load Project again."
+    ProtectDashboard
+    EndWork
+End Sub
 
 Private Sub ShowWarnings(ByVal dispName As String)
     Dim w As String
@@ -307,7 +313,7 @@ Private Function CheckTables(ByVal src As String, ByVal mainIO As String, _
     If Not CheckGroup("tblBudgetSelectedTest", dispName, msg) Then Exit Function
     If Not CheckGroup("tblActualsSelectedTest", dispName, msg) Then Exit Function
     If Not CheckGroup("qProjects_SelectedTest", dispName, msg) Then Exit Function
-    If Not CheckGroup("qManpower_SelectedTest", srcName, msg) Then Exit Function
+    If Not CheckGroup("tblManpowerSelectedTest", srcName, msg) Then Exit Function
     CheckTables = True
 End Function
 
@@ -536,7 +542,7 @@ Private Sub ReadManpower(ByVal src As String, ByVal mainIO As String)
 
     Set chargeTo = ReadChargeTo(src, mainIO)
     Set mpIndex = CreateObject("Scripting.Dictionary")
-    v = TableData("qManpower_SelectedTest", lo)
+    v = TableData("tblManpowerSelectedTest", lo)
     If IsEmpty(v) Then Exit Sub
     cIO = ColIndex(lo, "IO Code")
     cSG = ColIndex(lo, "Staff Group")
@@ -626,11 +632,13 @@ Private Sub ReadActuals()
     If IsEmpty(v) Then Exit Sub
     cCat = ColIndex(lo, "Expense Category")
     cPM = ColIndex(lo, "Posting Month")
-    cPD = ColIndex(lo, "Posting Date")
+    On Error Resume Next
+    cPD = lo.ListColumns("Posting Date").Index
+    On Error GoTo 0
     cAmt = ColIndex(lo, "Actual Amount ($)")
     For i = 1 To UBound(v, 1)
         hasDate = ToDate(v(i, cPM), d)
-        If Not hasDate Then hasDate = ToDate(v(i, cPD), d)
+        If Not hasDate And cPD > 0 Then hasDate = ToDate(v(i, cPD), d)
         If hasDate Or Not IsBlank(v(i, cAmt)) Then
             code = UCase$(CleanText(v(i, cCat)))
             b = BlockIndex(BlockOf(code))
@@ -681,10 +689,10 @@ Private Sub ReadStoreRows(ByVal src As String, ByVal mainIO As String)
                And Not IsBlank(data(i, modStore.S_AMT)) Then
                 storeRowsForKey = storeRowsForKey + 1
                 key = modStore.StoreIdentity(data, i)
-                blk = Split(key, "|")(0)
-                code = Split(key, "|")(1)
-                io = Split(key, "|")(2)
-                lk = Split(key, "|")(3)
+                blk = Split(key, "|", 4)(0)
+                code = Split(key, "|", 4)(1)
+                io = Split(key, "|", 4)(2)
+                lk = Split(key, "|", 4)(3)
                 amt = CDbl(data(i, modStore.S_AMT))
                 mi = MonthIndex(d)
                 idx = 0
@@ -832,6 +840,7 @@ Private Sub WriteGrid(ByVal ws As Worksheet, ByVal src As String, ByVal mainIO A
         Select Case colKind(c)
             Case "M": PutV arr, r0, c0, r0 + 1, sc, CDbl(MonthDate(colMonth(c)))
             Case "Q"
+                ' Quarter label sits over its Q Total, so it stays visible when the quarter is collapsed
                 PutV arr, r0, c0, r0, sc, qLbl(colQ(c))
                 PutV arr, r0, c0, r0 + 1, sc, "Q Total"
             Case "Y"

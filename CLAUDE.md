@@ -15,7 +15,8 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | Automatic project selection | Selected-test queries all passed. Not promoted over the original tables. |
 | Dashboard timeline redesign | Spec v1.0 approved. **Build done, untested in Excel:** VBA in `vba/` (import by hand), Python port of the grid checked with LibreOffice (`tests/grid_model.py`). |
 | **Incident (fixed, to confirm)** | The first v0.9 opened with an Excel repair, "Removed Part: /xl/queryTables/queryTable9.xml", because an XML-only rename of the manpower sheet/table left `ExternalData_3` and the PQ `FillTarget` on the old names. The rebuild keeps the v0.8 names. Awaiting the user's confirmation that it opens cleanly. See `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. |
-| Next action | The user opens the rebuilt v0.9 in desktop Excel (no repair prompt expected), installs the VBA and runs `tests/UAT_test_script.md`. |
+| **Open defect** | The timeline and C7/C8 take Project Start/End from `tblSelectedProjectMapping` (the SOA budget LOA dates) instead of `qProjects_SelectedTest` (the IREx project dates). On tDCS the grid stops at Dec 2026, not Sep 2027, and the later manpower months land on the Unmatched row. Logged, not fixed: `docs/incidents/2026-10-11-v0.9-project-end-date.md`. |
+| Next action | Fix the end-date defect (HANDOVER §0), rebuild, re-test tDCS, then carry on with UAT (`tests/UAT_test_script.md`). Ask the user about the OT vs RA source question. |
 
 ## Where things are
 
@@ -33,6 +34,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | `build/compare_pq.py` | Acceptance test 13: M code, connections and query-table destinations unchanged after an Excel save, plus `check_links` on the saved file |
 | `vba/` | `modTimeline.bas`, `modStore.bas`, `modSetup.bas`, `ThisWorkbook_code.txt`: the dashboard macros |
 | `tests/UAT_test_script.md` | Install steps and the 15 acceptance tests for desktop Excel |
+| `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Open defect: timeline uses SOA LOA dates, not project dates. Cause and fix plan |
 | `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident: queryTable9 removed on open. Root cause, resolution, prevention |
 | `tests/grid_model.py` | Python port of the grid builder; recalculates the formulas in LibreOffice and checks the figures |
 
@@ -111,6 +113,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 - Actuals carry only Expense Category + IO + Posting Month + the SAP cost-element text (`Sal -  Ald Health`, `CPF - Allied Health`, …). Nothing links an actual to a budget line. RA, therapist and nursing payroll are all MP (nursing is MP in SOA).
 - Some projects have payroll actuals coded **OM**, e.g. Esko Combo; this is why the charge-to table exists.
 - Budget descriptions repeat as signed adjustments, e.g. RA 64,200 + 8,400 and Research Fellow 39,000 − 39,000, and contain typos such as "Patient Reimbursemnt".
+- **Project dates:** `tblProjectIOCatalogue` / `tblSelectedProjectMapping` Project Start/End are the min/max of the **SOA budget LOA dates**, not the project dates. The authoritative project dates are in `qProjects_SelectedTest` (IREx). For tDCS they differ (SOA 31 Dec 2026, project 30 Sep 2027). The manpower `Tag Start`/`Tag End` are each person's LOA.
 - Catalogue Budget Code Types: MP, OM, EQ, CO, AL, OT, B, C, D, and blank.
 - `tbl_ManpowerRate` Category values: `AHS (OT/PT)`, `AHS`, `RA`, `Nurse`, `Admin`. The grade `SSN_Jul26 (Nurse)` was missing a space before "(", which breaks effective-date parsing; **the user fixed this in the source**.
 - The saved snapshots in v0.8 come from different refreshes: budget, actuals and projects show Esko Combo, while mapping and manpower show 3D Gait. Always refresh before reconciling.

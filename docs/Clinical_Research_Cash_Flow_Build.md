@@ -190,3 +190,10 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
 - **Impact:** in the repaired copy the manpower table no longer refreshes. Don't use it. v0.8 is unaffected.
 - **Correction:** the packaged workbook was the build output. It reports Excel iOS because the v0.8 input does: v0.8 itself was last saved on an iPhone/iPad.
 - **Fixed (11 Oct 2026, same day):** the XML rename is dropped (v0.8 names kept), the verifier checks the defined-name → query table → table → `FillTarget` chain with no exemptions, and v0.9_working was rebuilt and repackaged with its SHA-256. Details: `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`.
+
+### Defect (11 October 2026): timeline uses SOA LOA dates instead of project dates
+
+- **Found on tDCS** (user test of the rebuilt v0.9 in desktop Excel; no repair prompt, so the queryTable9 fix appears to work).
+- The grid and C7/C8 use `tblSelectedProjectMapping` Project Start/End, which are the min/max SOA budget LOA dates (1 Jan 2025 – 31 Dec 2026). The project dates in `qProjects_SelectedTest` run to 30 Sep 2027. RA manpower for Jan–Sep 2027 (26,975) therefore went to the Unmatched row (Project Total only). Totals stay correct (MP Projected 54,725 = `qManpower_SelectedTest`).
+- **Fix next session:** read dates from `qProjects_SelectedTest`, warn when they differ, repoint C7/C8, add a grid-model regression case, rebuild. Details: `docs/incidents/2026-10-11-v0.9-project-end-date.md`.
+- **Source-data question for the user:** tDCS RA = 43,575 and AHS (OT/PT) = 11,150 come from the rows on `DB_RA_Distrib` and `DB_AHS_Nurse_Distrib` respectively. The user expected the reverse, so check the IREx sheets.

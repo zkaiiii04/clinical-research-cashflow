@@ -15,6 +15,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **MP manual entry:** none — MP read-only; manual entry only on OM/EQ/CO/OTHER budget lines.
 - **Actuals:** category level only (no line-level actuals).
 - **Rows:** line items carry budget + projection; projected-vs-actual comparison on category subtotal rows only.
+- **Columns:** months → quarter total (collapsible, colour-coded per quarter) → FY totals → Project Total.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -114,6 +115,14 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Asked: Does 'too challenging' apply only to actuals, or to projection rows too?
 - Captured: **Actuals only.** "projections per line item is possible, the comparisons to actual will just be on categorical level which is fine by me."
 - Row model per category: line-item rows (budget + monthly projection; typed for OM/EQ/CO/OTHER, calculated read-only for MP manpower lines; MP budget lines budget-only) → category subtotal block: Projected (sum of lines), Actual, Variance ($), Variance (%).
+
+### Q15 — Column layout
+- Asked: How to arrange generated columns?
+- Captured: **Option 1 — months, then a quarter total after each quarter's months**, then Project Total at the end. Boundary quarters contain only active months.
+- **Quarters collapsible**: Excel outline grouping so each quarter collapses to its total and expands to show its months.
+- **Each quarter colour-coded** so quarters are easy to tell apart.
+- **Extra columns: yes** — financial-year total columns in addition to quarter totals and Project Total.
+- Flags: FY-total placement, colour scheme, and whether 'Remaining budget' column is included -> Q16.
 
 ## Open flags (pending input)
 - MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)

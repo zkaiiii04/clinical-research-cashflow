@@ -1,0 +1,10 @@
+' Paste this into the ThisWorkbook code module (VBE > Microsoft Excel Objects >
+' ThisWorkbook). Don't import it as a file: that would create a separate class
+' module instead of adding to ThisWorkbook.
+'
+' Spec 10.4: Excel doesn't keep outlining-under-protection between sessions,
+' so this re-enables it on open. It doesn't rebuild or refresh anything.
+
+Private Sub Workbook_Open()
+    modTimeline.ProtectDashboard
+End Sub

@@ -1,0 +1,3 @@
+# VBA modules must keep CRLF line endings for File > Import in the VBA editor
+*.bas text eol=crlf
+vba/*.txt text eol=crlf

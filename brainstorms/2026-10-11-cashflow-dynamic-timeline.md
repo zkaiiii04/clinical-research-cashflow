@@ -237,5 +237,12 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Confirmed: whole-dollar format with thousands separators, negatives red in brackets; % to 1 dp. Anyone with edit access can save (stamped user + time). No charts this phase. No special print layout. Build should take seconds even for ~60-month projects.
 - Changed: **no frozen panes**.
 
+### Q32 — Prototype review feedback
+- Remove the separate Code column; show **IO and budget code together with no space**, following the manpower IO convention (e.g. `TF25HIP136MP`, `TF25HIP136OM`). Merge the cell across consecutive lines that share it (the IO isn't repeated on every line).
+- Manpower IO removed from manpower row labels; locked manpower rows get a **`(Projected)`** suffix (e.g. `RA (Projected)`).
+- User: "other than that changes are okay" → spec updated to v0.2.
+- Still unanswered: colour variance by meaning vs red brackets for all negatives.
+
 ## Open flags (pending input)
+- Variance colouring: by meaning (only overspend red) or red brackets for every negative? -> user
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

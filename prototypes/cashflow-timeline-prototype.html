@@ -199,7 +199,8 @@ td.hasnote::after{content:"";position:absolute;top:0;right:0;border-left:7px sol
       <li>Variance compares actuals with projections only up to the Latest SOA Month, so planned spend in later months is not counted as underspend.</li>
       <li>3D Gait has saved projections, including one against an old line name ("Publications") and one in a month after the project end. They appear as Unmatched rows, are counted in the totals, and can be re-assigned or deleted.</li>
       <li>Esko Combo has one manpower line charged to OM (shown in the OM block) and one manpower line with no matching rate.</li>
-      <li>The IO · Code column shows the IO with its budget code (e.g. TF25HIP136 OM) and is merged across consecutive lines that share it. Manpower lines show their manpower IO only.</li>
+      <li>The IO · Code column follows the manpower IO convention, with the budget code joined to the IO and no space (e.g. TF25HIP136OM). It is merged across consecutive lines that share it, so MP budget lines and manpower lines on TF25HIP136MP share one cell.</li>
+      <li>Locked manpower rows end in “(Projected)” so they stand apart from the MP budget lines.</li>
       <li>With the agreed number format, a negative variance (underspend) also shows in red brackets. Tell me if you would rather colour variance by meaning.</li>
       <li>Sample figures: the 3D Gait totals match the reconciled checkpoints ($250,000 budget, $68,563.67 actuals, $62,250 RA projection), but how they are spread across months is made up. Esko Combo uses the budget lines and actuals saved in v0.8; its manpower lines are made up. The two projects are shown with the same Latest SOA Month for simplicity.</li>
     </ul>
@@ -318,7 +319,7 @@ function buildBlocks(p,key){
   p.manpower.forEach(mp=>{ const ct=CHARGE_TO.find(c=>c.source===p.source&&c.cat===mp.cat&&c.io===mp.io); const to=ct?ct.to:"MP";
     const vals={}; let oor=0; const oorList=[];
     Object.entries(mp.months).forEach(([ym,v])=>{ if(months.has(ym)) vals[ym]=v; else if(v!=null){ oor+=v; oorList.push(mLabel(ym)); } });
-    const label=mp.rnf? mp.group+" ⚠ Rate not found" : mp.cat+(to!=="MP"?"  ⚙ manpower → "+to:"");
+    const label=mp.rnf? mp.group+" (Projected) ⚠ Rate not found" : mp.cat+" (Projected)"+(to!=="MP"?"  ⚙ manpower → "+to:"");
     B(mp.rnf?"MP":to).rows.push({id:"r"+Math.random().toString(36).slice(2,8),kind:mp.rnf?"rnf":"calc",label,code:"MP",io:mp.io,budget:null,vals,oor,oorNote:oorList.join(", ")});
   });
   // saved projections
@@ -363,7 +364,7 @@ function render(){
     const lbl=c.type==="m"?mLabel(c.ym):c.type==="q"?"Q Total":c.label; h+=`<th class="${c.type==="m"?"hdr-q"+c.q+" q-"+c.qid:c.type==="q"?"hdr-q"+c.q:"fycol"}${hid}" style="${c.type==="m"?"font-weight:500":""}">${lbl}</th>`; });
   h+="</tr></thead><tbody>";
   S.blocks.forEach((b,bi)=>{
-    const ioKey=r=>(r.kind==="calc"||r.kind==="rnf")?r.io:r.io+" "+r.code;
+    const ioKey=r=>(r.kind==="calc"||r.kind==="rnf")?r.io:r.io+r.code;
     h+=`<tr class="block"><td class="lab" colspan="${3+cols.length}">${b.cat==="OTHER"?"OTHER (AL, OT, B, C, D …)":b.cat}</td></tr>`;
     b.rows.forEach((r,ri)=>{
       let ioCell=""; const kk=ioKey(r);

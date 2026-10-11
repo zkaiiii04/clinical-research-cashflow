@@ -1,6 +1,8 @@
 # Clinical Research Cash Flow — Dynamic Projection Timeline
 
-**Specification v0.1 (draft for review)** · 11 October 2026
+**Specification v0.2 (draft for review)** · 11 October 2026
+
+**Change log:** v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
 **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (not modified)
 **Build target:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`
 **Source of decisions:** `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` (Q1–Q31)
@@ -63,7 +65,7 @@ Replace the fixed timeline on `Main_Dashboard` (G21:BO56: 60 pre-formatted colum
 | Line | IO · Code | Budget | <months + quarter totals …> | <FY/CY totals …> | Project Total |
 ```
 
-- **IO · Code:** one column holding the IO and its budget code together, e.g. `TF25HIP136 MP`, `TF25HIP136 OM`, `TF25HIP136 AL`. Manpower lines show their manpower IO alone, e.g. `TF25HIP136MP`. The cell is **merged vertically** across consecutive lines in a block that share the same value, so the IO isn't repeated on every line. The category name is shown on the block header row rather than in its own column.
+- **IO · Code:** one column holding the IO with its budget code joined on, **no space**, following the manpower IO convention: e.g. `TF25HIP136MP`, `TF25HIP136OM`, `TF25HIP136EQ`, `TR25NMR043AL`. Manpower lines show their manpower IO as it comes from the source (e.g. `TF25HIP136MP`). The cell is **merged vertically** across consecutive lines in a block that share the same value, so the IO isn't repeated on every line. In the MP block, budget lines (`TF25HIP136` + `MP`) and manpower lines (`TF25HIP136MP`) normally share one merged cell. The category name is shown on the block header row rather than in its own column.
 - **Months:** every month from the first month of Project Start to the month of Project End, using the Main IO row of `tblSelectedProjectMapping`.
 - **Quarter total:** placed straight after the last active month of each quarter. Quarters at the start and end of the project hold only their active months.
 - **Quarter labels:**
@@ -98,9 +100,9 @@ The block order is **MP, OM, EQ, CO, OTHER**, followed by **PROJECT TOTAL**. A b
 1. **MP budget lines.** One row per IO + normalised Budget Description, showing the net Budget only. The month cells are blank and greyed out.
 2. **Manpower lines** (read-only).
    - One row per **Rate Category + IO Code**, where the charge-to setting is MP (the default).
-   - Label: the rate table's Category text as written, e.g. `RA`, `AHS (OT/PT)`, `AHS`, `Nurse`. The manpower IO is shown in the IO · Code column, not in the label.
+   - Label: the rate table's Category text as written followed by **`(Projected)`**, e.g. `RA (Projected)`, `AHS (OT/PT) (Projected)`, `AHS (Projected)`, `Nurse (Projected)`, so the locked projection rows stand apart from the MP budget lines. The manpower IO is shown in the IO · Code column, not in the label.
    - Month value = the sum of Projected Amount ($) for that month.
-   - Rows with **Rate Status = "Rate not found"** go on a `<Staff Group> ⚠ Rate not found` row, which shows a blank or $0 amount.
+   - Rows with **Rate Status = "Rate not found"** go on a `<Staff Group> (Projected) ⚠ Rate not found` row, which shows a blank or $0 amount.
    - An **Admin** category isn't expected. If one appears, the row is shown anyway and Load Project warns about it.
 3. **Unmatched row,** shown only when needed. It holds manpower months that fall outside the project dates (§9).
 4. **Subtotal rows:** Projected, Actual, Variance ($), Variance (%).
@@ -110,11 +112,11 @@ The block order is **MP, OM, EQ, CO, OTHER**, followed by **PROJECT TOTAL**. A b
    - Net signed budget, with lines that net to $0 hidden.
    - The month cells are **inputs**.
    - Patient reimbursement is simply its OM budget line.
-2. **Manpower lines charged to this block** (read-only, from the charge-to settings in §7). Each looks like an MP manpower line and carries the marker `⚙ manpower → OM`.
+2. **Manpower lines charged to this block** (read-only, from the charge-to settings in §7). Each looks like an MP manpower line, e.g. `AHS (Projected) ⚙ manpower → OM`.
 3. **Unmatched row,** shown only when needed (§9).
 4. **Subtotal rows:** Projected, Actual, Variance ($), Variance (%).
 
-OTHER holds every Budget Code Type that isn't MP, OM, EQ or CO (currently AL, OT, B, C, D). The **IO · Code** column shows the code with the IO (e.g. `TR25NMR043 AL`). A blank code is shown as `(no code)`.
+OTHER holds every Budget Code Type that isn't MP, OM, EQ or CO (currently AL, OT, B, C, D). The **IO · Code** column shows the code joined to the IO (e.g. `TR25NMR043AL`). A blank code is shown as `(no code)`.
 
 **PROJECT TOTAL:** Budget, Projected, Actual, Variance ($) and Variance (%) across all blocks.
 

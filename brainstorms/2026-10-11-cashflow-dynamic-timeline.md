@@ -5,7 +5,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 (running synthesis, updated as answers come in)
 
 - **Platform:** single shared .xlsm on SharePoint, desktop Excel → VBA OK; projections stored in-workbook.
-- **Driver/data:** E6/F6 + selected-test tables (budget, manpower, actuals, mapping). KPIs unchanged for now.
+- **Driver/data:** E6/F6 + selected-test tables (budget, manpower, actuals, mapping). KPIs repointed to new grid; C5 retired (Q22).
 - **Non-MP line grain:** one row per IO + Category + normalised Budget Description, net budget.
 - **Zero-net lines:** always hidden.
 - **Ad-hoc lines:** not allowed; budget lines only.
@@ -21,6 +21,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Save:** replace-this-project rows; prompt on unsaved switch; conflict warning on later save by someone else; blank not stored, 0 stored.
 - **Unmatched saved projections:** kept, shown in an 'Unmatched' row per category, counted in totals; out-of-range months in Project Total only (with note); Re-assign / Delete actions available.
 - **Patient reimbursement:** typed $ on the OM budget line; tblPatientReimbursement retired.
+- **Migration:** build in v0.9_working; old area + old input tables kept on hidden sheet for UAT comparison, deleted later.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -167,6 +168,10 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Captured: **Option 1 — typed as dollars on the OM 'Patient Reimbursemnt' budget line like any other line; retire tblPatientReimbursement** (patients × rate calculator dropped).
 - Flags: KPI F17 'Projected Total' currently sums tblPatientReimbursement + tblManualProjection → must be re-pointed when those tables retire (ties to KPI flag) -> Q22.
 
+### Q22 — Old area, old input tables, KPI cards
+- Captured: **Option 2.** Build in a new working version (v0.9_working; v0.8 untouched as fallback). Old fixed timeline (G21:BO56), tblManualProjection and tblPatientReimbursement moved to a **hidden comparison sheet for UAT**, deleted later. **KPI cards repointed** to the new grid / E6-F6 (Revised Approved Budget, Actual to Date, Projected Total, Overall & Projected Utilisation); C5 retired from the dashboard.
+- Note: KPI mismatch flag from Q4 resolved by this answer.
+
 ## Open flags (pending input)
 - Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user
 - Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user
@@ -175,5 +180,4 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Exact SOA CodeType string used for OTHER -> user
 - Actuals in a category that has no budget lines (no rows to show them against) -> to ask
 - Orphaned projections when a budget description changes/disappears in source — handling? -> user (to ask)
-- KPI cards stay on original tables/C5 while timeline uses selected-test/E6 — potential mismatch; decide repoint timing -> user
 - "In use by" indicator / soft lock on the dashboard — wanted? -> user

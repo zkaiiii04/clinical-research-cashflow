@@ -241,8 +241,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Remove the separate Code column; show **IO and budget code together with no space**, following the manpower IO convention (e.g. `TF25HIP136MP`, `TF25HIP136OM`). Merge the cell across consecutive lines that share it (the IO isn't repeated on every line).
 - Manpower IO removed from manpower row labels; locked manpower rows get a **`(Projected)`** suffix (e.g. `RA (Projected)`).
 - User: "other than that changes are okay" → spec updated to v0.2.
-- Still unanswered: colour variance by meaning vs red brackets for all negatives.
+- Variance colouring: user — "no need for colour code for variance" → **no meaning-based colouring**; variance uses the standard number format (negatives red in brackets) like every other figure.
 
 ## Open flags (pending input)
-- Variance colouring: by meaning (only overspend red) or red brackets for every negative? -> user
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

@@ -142,7 +142,7 @@ The line key is the Budget Description with leading and trailing spaces removed,
 
 Formulas only ever point at cells within the grid. **No SUMIFS or other references to Power Query tables appear in the grid.**
 
-**Formats:** whole dollars with thousands separators, negatives shown in red in brackets (`#,##0;[Red](#,##0)`), percentages to 1 decimal place.
+**Formats:** whole dollars with thousands separators, negatives shown in red in brackets (`#,##0;[Red](#,##0)`), percentages to 1 decimal place. Variance rows use the same format; there is no extra colour coding by meaning (overspend vs underspend).
 
 **Validation on input cells:** decimal numbers only, negatives allowed. If a blank input is saved, nothing is stored for it. A typed 0 is stored as 0.
 

@@ -10,7 +10,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Zero-net lines:** always hidden.
 - **Ad-hoc lines:** not allowed; budget lines only.
 - **Categories:** MP, OM, EQ, CO, OTHER (OTHER is separate; shown when budget lines exist).
-- **MP line identity:** macro groups by Staff Group + IO Code only (Q25b); AHS/Nurse split into 'Allied Health' and 'Nurse' via rate category list (Q27b); label 'Staff Group | IO'; no PQ change.
+- **MP line identity:** macro groups by Staff Group + IO Code only (Q25b); rows split by the rate table's Rate Category, label = Category text as-is (AHS, AHS (OT/PT), Nurse, RA) (Q29–Q30); label 'Staff Group | IO'; no PQ change.
 - **Charge-to:** admin table maps manpower lines to MP/OM; OM-charged manpower shows as locked row in OM block (Q27c).
 - **MP structure:** (option 3, 'for now') MP budget lines (budget only) and manpower lines (projection) listed separately in the MP block; no mapping.
 - **MP manual entry:** none — MP read-only; manual entry only on OM/EQ/CO/OTHER budget lines.
@@ -232,8 +232,13 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Data-quality risk spotted: grade **'SSN_Jul26(Nurse)'** has no space before '(' — qManpowerRates derives Effective Period Text as text after '_' up to the first space, so this grade yields 'Jul26(Nurse)' and its effective date may fail to parse → nurse rows on that grade may not get a rate. Source fix (add the space) recommended; not a dashboard change. -> admin
 - 'Admin' category exists — if admin staff appear on DB_AHS_Nurse_Distrib they'd need their own line. -> confirm (Q30)
 
+### Q30 — Rate-category labelling
+- User **fixed the spacing issue** in the rate table ('SSN_Jul26 (Nurse)').
+- (a) **No merge** — 'AHS' and 'AHS (OT/PT)' stay as separate rows. Default adopted: MP row label uses the rate table's Category text as-is + IO (e.g. 'AHS (OT/PT) | TF25HIP134MP', 'AHS | …', 'Nurse | …', 'RA | …').
+- (b) **No** to a separate Admin row — meaning to clarify (Admin never on manpower sheets, or fold into another row?).
+- (c) User: unmatched rate is "covered in the Power Query". Verified: qManpower_SelectedTest sets Rate Status = 'Rate not found' when Monthly Rate is null (Projected Amount then blank). Dashboard relies on this; proposed light touch: Load Project shows a warning count if any loaded manpower rows are 'Rate not found' (rows not silently dropped).
+
 ## Open flags (pending input)
-- Confirm Rate Category → display-group mapping incl. separate 'Admin' line (Q30) -> user
-- Source data fix: 'SSN_Jul26(Nurse)' grade missing space before '(' (effective-date parse risk) -> rate-table admin
+- Admin rate-category rows: never on manpower sheets, or fold into which row? -> user
 - Item 11: anything not covered (charts, print/export, number format, who may save) -> user
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

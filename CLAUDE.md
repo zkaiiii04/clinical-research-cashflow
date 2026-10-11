@@ -2,8 +2,6 @@
 
 Project instructions for Claude. This replaces `Clinical_Research_Cash_Flow_PROJECT2.md`.
 
-> This repository also contains `index.html` (Wardrobe Atlas). It has nothing to do with this project; leave it alone.
-
 ## What the project is
 
 An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for clinical research projects. Power Query pulls data from source workbooks on SharePoint: budget, signed actuals, project metadata, manpower FTE and manpower rates. The workbook presents it on `Main_Dashboard` as KPI cards plus a monthly/quarterly timeline of projected vs actual spend.

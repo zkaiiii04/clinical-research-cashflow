@@ -243,5 +243,9 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - User: "other than that changes are okay" → spec updated to v0.2.
 - Variance colouring: user — "no need for colour code for variance" → **no meaning-based colouring**; variance uses the standard number format (negatives red in brackets) like every other figure.
 
+### Q33 — Approval
+- User: **"approve, don't create yet."** Spec set to v1.0 APPROVED; build in v0.9_working NOT started.
+- User asked to convert PROJECT2.md into CLAUDE.md, update Build.md, TECHNICAL_SPECIFICATION.md and PRD (→ v1.7) with findings from this discussion, and write a handover doc for the next chat (HANDOVER.md).
+
 ## Open flags (pending input)
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

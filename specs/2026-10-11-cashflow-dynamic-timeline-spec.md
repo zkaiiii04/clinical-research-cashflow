@@ -1,11 +1,11 @@
 # Clinical Research Cash Flow — Dynamic Projection Timeline
 
-**Specification v0.2 (draft for review)** · 11 October 2026
+**Specification v1.0 — APPROVED by the user on 11 October 2026. Build not started (user instruction: do not create the workbook yet).**
 
-**Change log:** v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
+**Change log:** v1.0 approval; variance uses the standard number format with no colour coding by meaning. v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
 **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (not modified)
 **Build target:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`
-**Source of decisions:** `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` (Q1–Q31)
+**Source of decisions:** `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` (Q1–Q32)
 
 ---
 

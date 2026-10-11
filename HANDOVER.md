@@ -2,7 +2,7 @@
 
 **From session:** 11 October 2026 (design discovery → spec approval)
 **Where:** `main` branch of `zkaiiii04/clinical-research-cashflow` (renamed from `wardrobe-atlas` on 11 Oct 2026; GitHub redirects the old name). Design work was merged in PR #1; the unrelated Wardrobe Atlas page was removed in PR #2.
-**Status:** spec **v1.0 approved**. **Workbook build not started:** the user said "approve, don't create yet".
+**Status:** spec **v1.0 approved**. **v0.9_working built on 11 Oct 2026** (second session). The VBA is written but **not yet compiled or run in Excel**. The next step is the user's desktop-Excel UAT (`tests/UAT_test_script.md`). See §9.
 
 ---
 
@@ -42,7 +42,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 - **Protection:** no password; inputs shaded `#FFFFE0`, numbers only. Format: whole dollars, red brackets for negatives, no colour coding of variance by meaning.
 - **Retired:** `tblManualProjection` and `tblPatientReimbursement` (patient reimbursement is typed on its OM line). The old area moves to a hidden `Legacy_Timeline` sheet for UAT.
 
-## 4. Build plan for the next session (once the user says go)
+## 4. Build plan (done 11 Oct 2026, except steps 7-8, which the user runs in Excel; see §9)
 
 1. Copy v0.8 to `..._v0.9_working.xlsm`. **Never write to v0.8.**
 2. Housekeeping:
@@ -92,3 +92,24 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 ## 8. Suggested opening message for the next chat
 
 > Continue the Clinical Research Cash Flow dashboard work in this repo (main branch). Read `HANDOVER.md`, `CLAUDE.md` and the approved spec in `specs/`. I've uploaded the v0.8 workbook. Start the build in v0.9_working following the handover build plan.
+
+## 9. Build session (11 Oct 2026): what was done and what's next
+
+- **Workbook:** `build/build_v09_working.py` builds v0.9_working from v0.8 by editing the package XML.
+  - openpyxl was **not** used to save: an openpyxl save drops the Power Query DataMashup, the connections and the query tables.
+  - `build/verify_v09_working.py` passes: the M code is identical, the 34 PQ parts are byte-identical, and `Module1` is untouched.
+  - The workbook isn't in the repo. The user has the copy that was sent in chat; rebuild it from v0.8 with the script if needed.
+- **VBA route (a):** `vba/modTimeline.bas`, `vba/modStore.bas` and `vba/modSetup.bas` are imported by the user. `vba/ThisWorkbook_code.txt` is pasted into ThisWorkbook. Then the user runs `Setup_Dashboard_v09` once to add the buttons and protection.
+- **Layout decision:** the Line label spans B:E (overflow), so IO·Code is in F, Budget in G and months start at H. Collapsing a quarter never hides E6:G6 or the KPI cards. `TL_Anchor` is still B21.
+- **Checks done here:**
+  - `tests/grid_model.py`: a Python port of the grid, with 34 checks recalculated in LibreOffice, all passing.
+  - A static review of the VBA.
+- **Next session:**
+  1. Ask for the UAT results (`tests/UAT_test_script.md`), plus the compile result from Debug → Compile.
+  2. Fix what fails. Re-run `tests/grid_model.py` if the grid logic changes, and keep it in step with `modTimeline.bas`.
+  3. For test 13, run `python3 -I build/compare_pq.py <v0.8> <user's saved v0.9>`.
+  4. After UAT: promote the selected-test queries one at a time (CLAUDE.md business rules), then delete `Legacy_Timeline`.
+- **Gotchas:**
+  - The `.bas` files must stay ASCII with CRLF line endings. Unicode labels use `ChrW()`.
+  - ThisWorkbook code has to be pasted, not imported.
+  - Never open or save the workbook in LibreOffice; it strips the queries.

@@ -235,10 +235,9 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 ### Q30 — Rate-category labelling
 - User **fixed the spacing issue** in the rate table ('SSN_Jul26 (Nurse)').
 - (a) **No merge** — 'AHS' and 'AHS (OT/PT)' stay as separate rows. Default adopted: MP row label uses the rate table's Category text as-is + IO (e.g. 'AHS (OT/PT) | TF25HIP134MP', 'AHS | …', 'Nurse | …', 'RA | …').
-- (b) **No** to a separate Admin row — meaning to clarify (Admin never on manpower sheets, or fold into another row?).
+- (b) **No Admin row needed** (user: "no need for admin staff to have a row") — interpreted as admin staff not expected on the manpower distribution sheets. Safeguard: if an ADMIN-category manpower row ever appears, Load Project warns and still shows it under its category label so its cost isn't lost from MP totals. (Correct if admin rows should instead be excluded.)
 - (c) User: unmatched rate is "covered in the Power Query". Verified: qManpower_SelectedTest sets Rate Status = 'Rate not found' when Monthly Rate is null (Projected Amount then blank). Dashboard relies on this; proposed light touch: Load Project shows a warning count if any loaded manpower rows are 'Rate not found' (rows not silently dropped).
 
 ## Open flags (pending input)
-- Admin rate-category rows: never on manpower sheets, or fold into which row? -> user
 - Item 11: anything not covered (charts, print/export, number format, who may save) -> user
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

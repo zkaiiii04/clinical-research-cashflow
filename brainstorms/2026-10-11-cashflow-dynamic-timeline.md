@@ -17,6 +17,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Rows:** line items carry budget + projection; projected-vs-actual comparison on category subtotal rows only.
 - **Columns:** Budget | months → quarter total (collapsible, fixed colour per quarter number) … | all FY/CY totals at far right | Project Total. No Budget-remaining column (pending confirm). Same layout for Calendar Year.
 - **Cell contents:** values for data (MP, actuals, manual inputs) + grid-local SUM/variance formulas for totals; no table SUMIFS.
+- **Trigger:** 'Load Project' button = refresh selected-test queries synchronously → consistency check → build → load saved projections. No events; no query edits.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -137,7 +138,15 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Captured: **Option 1 — values for data, simple local formulas for totals.** Macro writes plain values for MP manpower projection, category actuals and loaded manual projections; writes short grid-local formulas (=SUM of the row's months for quarter/FY/Project totals; subtotal = SUM of line rows; Variance $ = Actual − Projected; Variance % = IFERROR(Var/Projected,"")) so totals update live as users type. No SUMIFS against PQ tables in the grid.
 - Consequence: MP/actual values are a snapshot from the last build → rebuild/reload after a PQ refresh (trigger design in Q18).
 
+### Q18 — Build trigger and PQ interaction
+- Asked: What triggers the build; does the macro touch PQ?
+- Captured: **One 'Load Project' button.** Steps: (1) check Setup Status = Ready; (2) refresh ONLY the selected-project queries in dependency order, synchronously (qSelectedProjectMapping → qBudget_SelectedTest, qActuals_SelectedTest, qProjects_SelectedTest, qManpower_SelectedTest); (3) verify every selected table reflects the same E6/F6 project — stop with a message if not; (4) build grid; (5) load saved projections for the project key.
+- Macro only CALLS refresh — never edits/adds/deletes queries, connections or loaded tables. No event-driven rebuilds.
+- Separate 'Save Projections' button (Q19).
+- Flags: qProjectIOCatalogue (feeds the E6/F6 dropdowns) not refreshed by Load Project — refreshed separately/as today -> confirm.
+
 ## Open flags (pending input)
+- Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user
 - Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user
 - MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)
 - MP row label format -> user

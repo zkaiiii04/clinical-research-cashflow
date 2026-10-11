@@ -10,7 +10,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Zero-net lines:** always hidden.
 - **Ad-hoc lines:** not allowed; budget lines only.
 - **Categories:** MP, OM, EQ, CO, OTHER (OTHER is separate; shown when budget lines exist).
-- **MP line identity:** macro groups by Staff Group + IO + LOA start/end + Resolved Rate Grade; no PQ change; identical positions may merge.
+- **MP line identity:** macro groups by Staff Group + IO Code only (Q25b); label 'Staff Group | IO'; no PQ change.
 - **MP structure:** (option 3, 'for now') MP budget lines (budget only) and manpower lines (projection) listed separately in the MP block; no mapping.
 - **MP manual entry:** none — MP read-only; manual entry only on OM/EQ/CO/OTHER budget lines.
 - **Actuals:** category level only (no line-level actuals).
@@ -187,14 +187,22 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - (3) User asked how the MP row label is derived → explained; raised that Resolved Rate Grade can change month-to-month when a new rate becomes effective, which would split one position into two rows → proposed dropping grade from the grouping key -> follow-up Q25b.
 - (4)–(9) not yet answered.
 
+### Q25b — MP grouping key and label (supersedes Q10 key)
+- Captured: **MP line = Staff Group + IO Code only.** Remove Tag Start/End (LOA) and Resolved Rate Grade from both the grouping key and the label, so a rate change mid-LOA never splits a position. Label e.g. 'Research Assistant | TF25HIP134MP'.
+- Consequence: all positions of the same Staff Group on the same IO merge into one row (FTE × rate summed per month) — accepted.
+
+### Q26 — Edge case raised by user: staff-group actuals are lumped in SOA
+- User: Research Assistant and Therapist actual costs both fall under the 'Allied Health' group in SOA (e.g. 'Sal -  Ald Health', 'CPF - Allied Health'), so if a project budgets for both, projections exist per staff group but actuals are lumped. "How should we resolve this?"
+- Response given: already resolved by Q13/Q14 — projected-vs-actual is compared at **category (MP) level only**: MP subtotal Projected = sum of ALL manpower lines (RA + Allied Health / Nurse); MP Actual = sum of ALL MP actuals regardless of cost-element text. No per-staff-group actual is attempted, so the lumping doesn't create a mismatch.
+- Related risk raised: Esko Combo shows payroll lines coded **OM** ('Sal -  Ald Health' under OM). If a person on the manpower sheet is paid through OM, their projection lands in MP but actuals land in OM → MP looks under-spent, OM over-spent. -> follow-up question to user.
+
 ## Open flags (pending input)
+- Are any manpower-sheet staff paid under OM in SOA (e.g. Therapy Associate Service)? If so, how to align projection category -> user
 - Mapping of AL / OT / B / C / D / blank codes to dashboard blocks -> user (Q25a)
-- MP grouping key: drop Resolved Rate Grade? -> user (Q25b)
 - Items 4–9 of loose-ends batch -> user
 - Confirm 'years' = 'yes' for numeric-only validation on input cells -> user
 - Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user
 - Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user
 - MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)
-- MP row label format -> user
 - Orphaned projections when a budget description changes/disappears in source — handling? -> user (to ask)
 - "In use by" indicator / soft lock on the dashboard — wanted? -> user

@@ -17,7 +17,8 @@ What it changes (spec §4, §7, §8, §12; HANDOVER §4 steps 1-6)
   - retires the C5 Project Display Name selector (B5/C5 and its validation)
   - removes the H3/J3 links to the retired input tables and the hidden L14
     helper
-  - repoints C7, C8, C9, C14, F14, F17, C17 and C19 (spec §12)
+  - repoints C7, C8, C9, C14, F14, F17, C17 and C19 (spec §12); C7/C8 use the
+    qProjects_SelectedTest project dates, not the SOA budget LOA dates
   - adds a list validation to C6 (Financial Year / Calendar Year)
   - writes the "not loaded yet" notice in E7, below the selector
   - drops the old column outline and the two obsolete notes (G3, C5)
@@ -84,10 +85,18 @@ CHARGE_COLUMNS = ["Source Project", "Main IO", "Rate Category", "IO Code", "Char
 # Spec §12. Names are defined as "" so the KPI cards are blank until the
 # first Load Project redefines them to point at the grid.
 KPI_FORMULAS = {
-    "C7": 'IFERROR(INDEX(tblSelectedProjectMapping[Project Start],'
-          'MATCH("Yes",tblSelectedProjectMapping[Main IO],0)),"")',
-    "C8": 'IFERROR(INDEX(tblSelectedProjectMapping[Project End],'
-          'MATCH("Yes",tblSelectedProjectMapping[Main IO],0)),"")',
+    # Project dates come from qProjects_SelectedTest (IREx, IO Code Type
+    # "Main"); the mapping's SOA budget LOA dates are only a fallback, as in
+    # modTimeline.ProjectDates (incident 2026-10-11, project end date).
+    # 1/(1/x) turns a blank date into an error so the fallback applies.
+    "C7": 'IFERROR(1/(1/INDEX(qProjects_SelectedTest[Project Start],'
+          'MATCH("Main",qProjects_SelectedTest[IO Code Type],0))),'
+          'IFERROR(INDEX(tblSelectedProjectMapping[Project Start],'
+          'MATCH("Yes",tblSelectedProjectMapping[Main IO],0)),""))',
+    "C8": 'IFERROR(1/(1/INDEX(qProjects_SelectedTest[Project End],'
+          'MATCH("Main",qProjects_SelectedTest[IO Code Type],0))),'
+          'IFERROR(INDEX(tblSelectedProjectMapping[Project End],'
+          'MATCH("Yes",tblSelectedProjectMapping[Main IO],0)),""))',
     "C9": 'IFERROR(IF(COUNT(tblActualsSelectedTest[Posting Month])=0,"",'
           'MAX(tblActualsSelectedTest[Posting Month])),"")',
     "C14": "TL_TotalBudget",

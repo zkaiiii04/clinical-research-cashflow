@@ -1,8 +1,8 @@
 # Clinical Research Cash Flow — Dynamic Projection Timeline
 
-**Specification v1.0 — APPROVED by the user on 11 October 2026. Build not started (user instruction: do not create the workbook yet).**
+**Specification v1.0 — APPROVED by the user on 11 October 2026 (current revision v1.0.3). Built as v0.9_working; in UAT.**
 
-**Change log:** v1.0.2 (11 Oct 2026, incident fix): the v1.0.1 rename is reverted. The manpower table keeps its v0.8 name `qManpower_SelectedTest` on sheet `PQManpower_SelectedTest`, because renaming it by editing the file broke its query link (`docs/incidents/2026-10-11-v0.9-querytable9-repair.md`). It can be renamed later in the Excel UI; the VBA then needs its `MANPOWER_TABLE` constant changed. v1.0.1 (11 Oct 2026, build): the manpower table was renamed `tblManpowerSelectedTest` (user request). v1.0 approval; variance uses the standard number format with no colour coding by meaning. v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
+**Change log:** v1.0.3 (11 Oct 2026, defect fix): the timeline's months and C7/C8 take Project Start/End from **`qProjects_SelectedTest`** (IREx project dates, IO Code Type "Main" row), not from `tblSelectedProjectMapping`, whose dates are the min/max of the SOA budget LOA dates. The mapping dates are only a fallback when the project dates are blank, and Load warns when the two differ (`docs/incidents/2026-10-11-v0.9-project-end-date.md`). Acceptance test 16 added. v1.0.2 (11 Oct 2026, incident fix): the v1.0.1 rename is reverted. The manpower table keeps its v0.8 name `qManpower_SelectedTest` on sheet `PQManpower_SelectedTest`, because renaming it by editing the file broke its query link (`docs/incidents/2026-10-11-v0.9-querytable9-repair.md`). It can be renamed later in the Excel UI; the VBA then needs its `MANPOWER_TABLE` constant changed. v1.0.1 (11 Oct 2026, build): the manpower table was renamed `tblManpowerSelectedTest` (user request). v1.0 approval; variance uses the standard number format with no colour coding by meaning. v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
 **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (not modified)
 **Build target:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`
 **Source of decisions:** `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` (Q1–Q32)
@@ -42,7 +42,8 @@ Replace the fixed timeline on `Main_Dashboard` (G21:BO56: 60 pre-formatted colum
 
 | Purpose | Object | Fields used |
 |---|---|---|
-| Selected project / dates | `tblSelectedProjectMapping` | Source Project Name, Project Display Name, IO Code, Budget Code Type, Main IO, Project Start, Project End |
+| Selected project | `tblSelectedProjectMapping` | Source Project Name, Project Display Name, IO Code, Budget Code Type, Main IO; Project Start / Project End only as a fallback (they are the SOA budget LOA dates) |
+| Project dates | `qProjects_SelectedTest` | IO Code, IO Code Type ("Main"), Project Start, Project End (IREx project information, authoritative) |
 | Budget lines | `tblBudgetSelectedTest` | Project Group, IO Code, Expense Category, Budget Description, Revised Budget ($) |
 | Manpower projection | `qManpower_SelectedTest` (table on `PQManpower_SelectedTest`, loaded by the query of the same name) | Project Group, IO Code, Staff Group, Month, Monthly FTE, Rate Category, Projected Amount ($), Rate Status |
 | Actuals | `tblActualsSelectedTest` | Project Group, Expense Category, Posting Month, Actual Amount ($) |
@@ -66,7 +67,7 @@ Replace the fixed timeline on `Main_Dashboard` (G21:BO56: 60 pre-formatted colum
 ```
 
 - **IO · Code:** one column holding the IO with its budget code joined on, **no space**, following the manpower IO convention: e.g. `TF25HIP136MP`, `TF25HIP136OM`, `TF25HIP136EQ`, `TR25NMR043AL`. Manpower lines show their manpower IO as it comes from the source (e.g. `TF25HIP136MP`). The cell is **merged vertically** across consecutive lines in a block that share the same value, so the IO isn't repeated on every line. In the MP block, budget lines (`TF25HIP136` + `MP`) and manpower lines (`TF25HIP136MP`) normally share one merged cell. The category name is shown on the block header row rather than in its own column.
-- **Months:** every month from the first month of Project Start to the month of Project End, using the Main IO row of `tblSelectedProjectMapping`.
+- **Months:** every month from the first month of Project Start to the month of Project End, using the project dates in `qProjects_SelectedTest` (the IO Code Type "Main" row for the Main IO, otherwise the first "Main" row). Only if those are blank does the build fall back to the Main IO row of `tblSelectedProjectMapping` (SOA budget LOA dates).
 - **Quarter total:** placed straight after the last active month of each quarter. Quarters at the start and end of the project hold only their active months.
 - **Quarter labels:**
   - Financial Year (Apr–Mar): `FY25/Q3`, the existing convention, where the FY is named by its starting year.
@@ -211,7 +212,7 @@ All macros go in new standard modules (`modTimeline`, `modStore`). The existing 
    - budget and actuals Project Group = the mapping's Project Display Name;
    - manpower Project Group = Source Project Name.
    If any table doesn't match, stop with a message naming it and leave the grid unchanged.
-5. Build the grid (§5–6) and apply the outline, colours, protection and validation.
+5. Take the project dates from `qProjects_SelectedTest` (fallback: `tblSelectedProjectMapping`, see §5.2). If the mapping's SOA budget LOA dates differ from the project dates, add a Load warning naming both date ranges. Build the grid (§5–6) and apply the outline, colours, protection and validation.
 6. Load the store rows for the project key into the input cells, and place any unmatched rows (§9).
 7. Write the "Dashboard loaded by …" notice and capture the session state (§8).
 8. Show warnings if any apply: manpower rows with "Rate not found", Admin-category rows, unmatched saved projections.
@@ -253,7 +254,7 @@ All of this is done in `v0.9_working` only.
 
    | Cell | New source |
    |---|---|
-   | C7 Project Start / C8 Project End | `tblSelectedProjectMapping` (Main IO = "Yes") |
+   | C7 Project Start / C8 Project End | `qProjects_SelectedTest` (IO Code Type = "Main"); fallback `tblSelectedProjectMapping` (Main IO = "Yes") when blank |
    | C9 Latest SOA Month | `MAX(tblActualsSelectedTest[Posting Month])` |
    | C14 Revised Approved Budget | Grid PROJECT TOTAL Budget (`TL_TotalBudget`) |
    | F14 Actual to Date | Grid PROJECT TOTAL Actual, Project Total column (`TL_TotalActual`) |
@@ -282,6 +283,7 @@ All of this is done in `v0.9_working` only.
 | 13 | PQ untouched | Query names and M formulas identical before and after a full Load/Save cycle (compared by script) |
 | 14 | Mismatch guard | Change E6 without loading, then Save → blocked with "Selection changed — reload first" |
 | 15 | Cross-project | Switch to HoW2.0 - Esko Combo, which has AHS manpower lines and EQ/CO/OM budget lines → correct blocks and figures |
+| 16 | Project dates | Load tDCS (SOA budget LOA end 31 Dec 2026, IREx project end 30 Sep 2027) → timeline Jan 2025 – Sep 2027, C7/C8 = 1 Jan 2025 / 30 Sep 2027, no "manpower months outside project dates" row, MP Projected = sum of `qManpower_SelectedTest`, and a Load warning naming both date ranges |
 
 ## 14. Decisions made while writing the spec
 

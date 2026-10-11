@@ -197,3 +197,9 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
 - The grid and C7/C8 use `tblSelectedProjectMapping` Project Start/End, which are the min/max SOA budget LOA dates (1 Jan 2025 – 31 Dec 2026). The project dates in `qProjects_SelectedTest` run to 30 Sep 2027. RA manpower for Jan–Sep 2027 (26,975) therefore went to the Unmatched row (Project Total only). Totals stay correct (MP Projected 54,725 = `qManpower_SelectedTest`).
 - **Fix next session:** read dates from `qProjects_SelectedTest`, warn when they differ, repoint C7/C8, add a grid-model regression case, rebuild. Details: `docs/incidents/2026-10-11-v0.9-project-end-date.md`.
 - **Source-data question for the user:** tDCS RA = 43,575 and AHS (OT/PT) = 11,150 come from the rows on `DB_RA_Distrib` and `DB_AHS_Nurse_Distrib` respectively. The user expected the reverse, so check the IREx sheets.
+- **Fixed 11 Oct 2026 (spec v1.0.3):**
+  - the timeline and C7/C8 now take Project Start/End from `qProjects_SelectedTest`, with the mapping's SOA LOA dates only as a fallback, and Load warns when they differ;
+  - the grid model has a tDCS regression case (43/43 checks pass);
+  - the rebuild verifies;
+  - UAT test 16 added.
+  - The user traced the stale end date to a source-file column Power Query reads. Awaiting the tDCS re-test.

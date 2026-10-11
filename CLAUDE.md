@@ -15,8 +15,8 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | Automatic project selection | Selected-test queries all passed. Not promoted over the original tables. |
 | Dashboard timeline redesign | Spec v1.0 approved. **Build done, untested in Excel:** VBA in `vba/` (import by hand), Python port of the grid checked with LibreOffice (`tests/grid_model.py`). |
 | **Incident (fixed, to confirm)** | The first v0.9 opened with an Excel repair, "Removed Part: /xl/queryTables/queryTable9.xml", because an XML-only rename of the manpower sheet/table left `ExternalData_3` and the PQ `FillTarget` on the old names. The rebuild keeps the v0.8 names. Awaiting the user's confirmation that it opens cleanly. See `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. |
-| **Open defect** | The timeline and C7/C8 take Project Start/End from `tblSelectedProjectMapping` (the SOA budget LOA dates) instead of `qProjects_SelectedTest` (the IREx project dates). On tDCS the grid stops at Dec 2026, not Sep 2027, and the later manpower months land on the Unmatched row. Logged, not fixed: `docs/incidents/2026-10-11-v0.9-project-end-date.md`. |
-| Next action | Fix the end-date defect (HANDOVER §0), rebuild, re-test tDCS, then carry on with UAT (`tests/UAT_test_script.md`). Ask the user about the OT vs RA source question. |
+| **Defect (fixed, to confirm)** | The timeline and C7/C8 took Project Start/End from `tblSelectedProjectMapping` (the SOA budget LOA dates) instead of `qProjects_SelectedTest` (the IREx project dates), so on tDCS the grid stopped at Dec 2026, not Sep 2027. Fixed in `vba/modTimeline.bas` (`ProjectDates`) and the build (C7/C8); spec v1.0.3; UAT test 16. The user found the stale date was in a source-file column Power Query reads. See `docs/incidents/2026-10-11-v0.9-project-end-date.md`. |
+| Next action | The user re-imports `vba/modTimeline.bas` (or uses the rebuilt package), re-tests tDCS (UAT test 16), then carries on with UAT (`tests/UAT_test_script.md`). Ask about the OT vs RA source question. |
 
 ## Where things are
 
@@ -34,7 +34,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | `build/compare_pq.py` | Acceptance test 13: M code, connections and query-table destinations unchanged after an Excel save, plus `check_links` on the saved file |
 | `vba/` | `modTimeline.bas`, `modStore.bas`, `modSetup.bas`, `ThisWorkbook_code.txt`: the dashboard macros |
 | `tests/UAT_test_script.md` | Install steps and the 15 acceptance tests for desktop Excel |
-| `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Open defect: timeline uses SOA LOA dates, not project dates. Cause and fix plan |
+| `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Defect: timeline used SOA LOA dates, not project dates. Cause, fix, test |
 | `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident: queryTable9 removed on open. Root cause, resolution, prevention |
 | `tests/grid_model.py` | Python port of the grid builder; recalculates the formulas in LibreOffice and checks the figures |
 
@@ -66,6 +66,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 
 ## Approved dashboard design (summary; the spec wins if they differ)
 
+- **Project dates:** from `qProjects_SelectedTest` (IREx, IO Code Type "Main"). `tblSelectedProjectMapping` dates are the SOA budget LOA dates and only a fallback; Load warns when they differ.
 - **Load Project button:**
   1. Check Setup Status is Ready.
   2. Refresh only `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `tblActualsSelectedTest`, `qProjects_SelectedTest` and `qManpower_SelectedTest`, synchronously.

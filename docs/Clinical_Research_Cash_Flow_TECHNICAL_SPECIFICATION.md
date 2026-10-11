@@ -159,7 +159,7 @@ This replaces the v0.8 fixed-capacity, formula-driven timeline (G21:BO56). Full 
 #### 6.1 Inputs and driver
 
 - Driver: E6 Source Project + F6 Main IO. Project key = Source Project + Main IO.
-- Reads `tblSelectedProjectMapping` (dates, from the Main IO row), `tblBudgetSelectedTest`, `qManpower_SelectedTest` and `tblActualsSelectedTest`.
+- Reads `qProjects_SelectedTest` for the project dates (IO Code Type "Main" row; IREx project information), `tblSelectedProjectMapping` for the project names and Main IO (its Project Start/End are the SOA budget LOA dates and are only a fallback), `tblBudgetSelectedTest`, `qManpower_SelectedTest` and `tblActualsSelectedTest`. Load warns when the SOA LOA dates and the project dates differ.
 
 #### 6.2 Macros (new modules `modTimeline`, `modStore`; `Module1` untouched)
 
@@ -195,7 +195,7 @@ This replaces the v0.8 fixed-capacity, formula-driven timeline (G21:BO56). Full 
 
 #### 6.5 KPI cards and retirement
 
-- C7/C8 come from `tblSelectedProjectMapping` (Main IO row). C9 = MAX of the actuals' Posting Month. C14, F14 and F17 come from the grid's `TL_TotalBudget`, `TL_TotalActual` and `TL_TotalProjected`. C17 and C19 are ratios.
+- C7/C8 come from `qProjects_SelectedTest` (IO Code Type "Main"), falling back to `tblSelectedProjectMapping` (Main IO row) only when blank. C9 = MAX of the actuals' Posting Month. C14, F14 and F17 come from the grid's `TL_TotalBudget`, `TL_TotalActual` and `TL_TotalProjected`. C17 and C19 are ratios.
 - C5, `tblManualProjection` and `tblPatientReimbursement` are retired. The old area moves to a hidden `Legacy_Timeline` sheet during UAT. Patient reimbursement is typed on its OM budget line.
 
 #### 6.6 Protection

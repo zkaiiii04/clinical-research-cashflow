@@ -196,8 +196,19 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Response given: already resolved by Q13/Q14 — projected-vs-actual is compared at **category (MP) level only**: MP subtotal Projected = sum of ALL manpower lines (RA + Allied Health / Nurse); MP Actual = sum of ALL MP actuals regardless of cost-element text. No per-staff-group actual is attempted, so the lumping doesn't create a mismatch.
 - Related risk raised: Esko Combo shows payroll lines coded **OM** ('Sal -  Ald Health' under OM). If a person on the manpower sheet is paid through OM, their projection lands in MP but actuals land in OM → MP looks under-spent, OM over-spent. -> follow-up question to user.
 
+### Q26 — Manpower staff paid under OM (answer)
+- Captured: **Yes, this happens** — some manpower-sheet staff are charged to OM in SOA. User OK to add a per-line "charged to OM" setting.
+- User question: if a manpower line is set to OM, will OM show it like manpower? → Proposed answer: yes — the line moves into the OM block as a read-only calculated row (FTE × rate) next to OM's typed budget lines; OM subtotal Projected includes it and compares to OM actuals. Mechanism / granularity -> follow-up Q27.
+
+### Q26c — Nursing (raised by user)
+- User: "nursing costs are handled separately under nursing category in actual SOA spending — is this covered?"
+- Issue: manpower Staff Group 'Allied Health / Nurse' comes from ONE source sheet (DB_AHS_Nurse_Distrib), so AHS and nurse projections are on one MP row. Whether covered depends on how SOA codes nursing actuals:
+  - if nursing actuals are CodeType MP (only cost-element text differs) → covered by MP-level comparison;
+  - if nursing actuals have their own CodeType (a separate category) → NOT covered: projection in MP, actuals in another block.
+- Possible fix if separate: split the AHS/Nurse row by the rate's Rate Category (from qManpowerRates) and treat nursing as its own category/charge target. -> follow-up Q27.
+
 ## Open flags (pending input)
-- Are any manpower-sheet staff paid under OM in SOA (e.g. Therapy Associate Service)? If so, how to align projection category -> user
+- Exact SOA CodeType for nursing actuals (MP, or a separate code — which?) -> user / finance
 - Mapping of AL / OT / B / C / D / blank codes to dashboard blocks -> user (Q25a)
 - Items 4–9 of loose-ends batch -> user
 - Confirm 'years' = 'yes' for numeric-only validation on input cells -> user

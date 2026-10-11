@@ -211,5 +211,5 @@ This replaces the v0.8 fixed-capacity, formula-driven timeline (G21:BO56). Full 
 
 - Save a new workbook version before material changes. Do not overwrite the stable v0.8 baseline.
 - All four selected-test areas are passed but not promoted.
-- Build the approved dashboard in v0.9_working, then run the spec's 15 acceptance tests.
+- Build the approved dashboard in v0.9_working, then run the spec's 16 acceptance tests.
 - Then promote one query at a time, preferring the existing table names, and repeat the KPI, timeline and cross-project reconciliation after each promotion.

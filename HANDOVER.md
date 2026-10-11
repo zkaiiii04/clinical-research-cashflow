@@ -2,31 +2,24 @@
 
 **From session:** 11 October 2026 (design discovery → spec approval)
 **Where:** `main` branch of `zkaiiii04/clinical-research-cashflow` (renamed from `wardrobe-atlas` on 11 Oct 2026; GitHub redirects the old name). Design work was merged in PR #1; the unrelated Wardrobe Atlas page was removed in PR #2.
-**Status:** spec **v1.0 approved** (v1.0.3). v0.9_working rebuilt 11 Oct 2026. The queryTable9 repair is fixed (the user's copy loads cleanly). The **timeline end-date defect is fixed** (§0); waiting for the user's tDCS re-test (UAT test 16), then UAT continues (§9).
+**Status:** spec **v1.0 approved** (revision v1.0.3). v0.9_working is built and **in UAT**. Both 11 Oct issues are **closed and confirmed by the user in desktop Excel**: the queryTable9 repair and the timeline end date. Next: finish UAT (§0), then promote the selected-test queries.
 
 ---
 
-## 0. START HERE: timeline end date defect, fixed 11 Oct 2026; awaiting the user's re-test
+## 0. START HERE: UAT in progress (as of 11 Oct 2026)
 
-Full write-up: **`docs/incidents/2026-10-11-v0.9-project-end-date.md`** (cause, fix, tests).
-
-- **Cause:** the grid and C7/C8 used `tblSelectedProjectMapping` dates, which are the min/max of the SOA budget LOA dates. For tDCS that was 31 Dec 2026, from a stale column in the source file (found by the user). The real project end is 30 Sep 2027.
-- **Fix:**
-  - `modTimeline.ProjectDates` reads `qProjects_SelectedTest` (IO Code Type "Main");
-  - the mapping dates are only a fallback;
-  - Load warns when the two differ;
-  - C7/C8 are repointed in the build;
-  - the verifier checks C7/C8;
-  - the grid model has a tDCS regression (43/43 pass);
-  - spec v1.0.3; UAT test 16.
-- **Package:** rebuilt from v0.8; verifier PASS; SHA-256 in `release/CashFlow_v0.9_package.zip` → `README_FIRST.txt`.
+**Where things stand:**
+- v0.9_working (spec v1.0.3) is built. `release/CashFlow_v0.9_package.zip` on `main` has the workbook and its SHA-256 in `README_FIRST.txt`, plus the current `vba/` modules (CRLF; import them from the zip, not GitHub "Raw").
+- **Timeline end-date defect: closed.** The timeline and C7/C8 now use the IREx project dates in `qProjects_SelectedTest`. The SOA budget LOA dates in `tblSelectedProjectMapping` are only a fallback, and Load warns when they differ. The user confirmed tDCS works in desktop Excel. The stale 31 Dec 2026 came from a source-file column Power Query reads (SOA LOA end). See `docs/incidents/2026-10-11-v0.9-project-end-date.md`.
+- **queryTable9 repair: closed.** The rebuilt copy, which keeps the v0.8 manpower names, opens and loads without a repair prompt (§0b).
 
 **Next session:**
-1. Ask whether the user re-imported `vba/modTimeline.bas` and pasted the new C7/C8 formulas, or switched to the rebuilt package. Then ask for UAT test 16 (tDCS) and the rest of the UAT results.
-2. **OT vs RA (source data, still open):** tDCS shows RA = 43,575 (`DB_RA_Distrib`) and AHS (OT/PT) = 11,150 (`DB_AHS_Nurse_Distrib`), the reverse of what the user expected. Ask what they found in IREx. A sheet move changes the amounts, because the OT person would then be priced at their AHS grade.
-3. Close this incident and the queryTable9 one once confirmed.
+1. Ask the user for their UAT results: the 16 tests in `tests/UAT_test_script.md`, including test 16 (tDCS project dates) and the Debug → Compile result. Fix what fails. If grid logic changes, keep `tests/grid_model.py` in step with `vba/modTimeline.bas` and re-run it (43 checks).
+2. **Open source-data question (tDCS OT vs RA):** the manpower table shows RA = 43,575 (from `DB_RA_Distrib`) and AHS (OT/PT) = 11,150 (from `DB_AHS_Nurse_Distrib`), the reverse of what the user expected (budget OT 42,000 / RA 10,800). The staff group comes from which IREx sheet a row is on. Ask whether they checked IREx. If the OT person moves to the AHS sheet, their amount changes (priced at their AHS grade, not AH11 RA). This isn't a workbook bug unless the source proves otherwise.
+3. After UAT sign-off: promote the selected-test queries one at a time (CLAUDE.md business rules) and delete `Legacy_Timeline`.
+4. For test 13: `python3 -I build/compare_pq.py <v0.8> <user's saved v0.9>`.
 
-## 0b. v0.9 repair error (queryTable9), fixed 11 Oct 2026; the user's later upload suggests it's resolved
+## 0b. v0.9 repair error (queryTable9): closed 11 Oct 2026 (history)
 
 **Fix session outcome (11 Oct 2026):**
 - The rename is dropped: the manpower table and sheet keep the v0.8 names `qManpower_SelectedTest` / `PQManpower_SelectedTest`. The VBA reads the name from `modTimeline.MANPOWER_TABLE`.
@@ -61,11 +54,11 @@ When the user opened the v0.9 package workbook from SharePoint in desktop Excel,
 ## 1. Read these first, in this order
 
 1. `CLAUDE.md`: project rules, architecture, conventions, data quirks.
-2. `specs/2026-10-11-cashflow-dynamic-timeline-spec.md`: **the build spec (authoritative).** §10 covers the macros, §12 the KPI repointing and migration, §13 the 15 acceptance tests.
+2. `specs/2026-10-11-cashflow-dynamic-timeline-spec.md`: **the build spec (authoritative).** §10 covers the macros, §12 the KPI repointing and migration, §13 the 16 acceptance tests.
 3. `brainstorms/2026-10-11-cashflow-dynamic-timeline.md`: why each decision was made (Q1–Q33). The summary at the top is reconciled; the later Q entries supersede earlier ones where they conflict, and those are marked.
 4. `prototypes/cashflow-timeline-prototype.html`: what the user approved visually (https://claude.ai/artifact/AYqLAxM4obRV3eJAXDBLDv).
 
-Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PRD_v1.7.docx`, `docs/Clinical_Research_Cash_Flow_TECHNICAL_SPECIFICATION.md`, `docs/Clinical_Research_Cash_Flow_Build.md`.
+Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PRD_v1.8.docx`, `docs/Clinical_Research_Cash_Flow_TECHNICAL_SPECIFICATION.md`, `docs/Clinical_Research_Cash_Flow_Build.md`.
 
 ## 2. What to ask the user for at the start
 
@@ -115,7 +108,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
    - the `.xlsm` opens with openpyxl (`keep_vba=True`);
    - Power Query M is byte-identical before and after (compare `customXml/item1.xml` → `Formulas/Section1.m`);
    - the VBA compiles in principle (careful static review; no Excel here).
-8. Give the user a **desktop-Excel test script** for the 15 acceptance tests in spec §13. The key figures for 3D Gait: Budget **$250,000.00**; Actual **$68,563.67** (MP **$24,367.83**, OM **$44,195.84**); MP Projected **$62,250.00**; 17 months Nov 2025–Mar 2027; 6 quarters; FY25/FY26 totals.
+8. Give the user a **desktop-Excel test script** for the acceptance tests in spec §13 (now 16). The key figures for 3D Gait: Budget **$250,000.00**; Actual **$68,563.67** (MP **$24,367.83**, OM **$44,195.84**); MP Projected **$62,250.00**; 17 months Nov 2025–Mar 2027; 6 quarters; FY25/FY26 totals.
 9. Commit the `.bas` files, the build script and the test script to the branch. Don't commit the workbook unless the user asks.
 
 ## 5. Gotchas found this session
@@ -143,7 +136,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 
 ## 8. Suggested opening message for the next chat
 
-> Continue the Clinical Research Cash Flow dashboard work in zkaiiii04/clinical-research-cashflow (main). Read `HANDOVER.md` (start at §0) and `CLAUDE.md`. Here are my UAT results (including test 16, tDCS) and my current v0.9_working.
+> Continue the Clinical Research Cash Flow dashboard work in zkaiiii04/clinical-research-cashflow (main). Read `HANDOVER.md` (start at §0) and `CLAUDE.md`. Here are my UAT results and my current v0.9_working.
 
 ## 9. Build session (11 Oct 2026): what was done and what's next
 
@@ -163,6 +156,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
   4. After UAT: promote the selected-test queries one at a time (CLAUDE.md business rules), then delete `Legacy_Timeline`.
 - **Rename reverted:** the first build renamed the manpower table to `tblManpowerSelectedTest` (sheet `PQ_Manpower_SelectedTest`) by editing XML, which caused the queryTable9 repair (§0). The rebuild keeps the v0.8 names. If the user still wants the new names, they rename in the Excel UI and the `MANPOWER_TABLE` constant in `modTimeline.bas` is changed to match.
 - **Gotchas:**
+  - Give the user `.bas` files from the release zip or as chat attachments. GitHub stores them with LF and its "Raw" download serves LF, which File → Import doesn't handle reliably.
   - The `.bas` files must stay ASCII with CRLF line endings. Unicode labels use `ChrW()`.
   - ThisWorkbook code has to be pasted, not imported.
   - Never open or save the workbook in LibreOffice; it strips the queries.

@@ -18,6 +18,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Columns:** Budget | months → quarter total (collapsible, fixed colour per quarter number) … | all FY/CY totals at far right | Project Total. No Budget-remaining column (pending confirm). Same layout for Calendar Year.
 - **Cell contents:** values for data (MP, actuals, manual inputs) + grid-local SUM/variance formulas for totals; no table SUMIFS.
 - **Trigger:** 'Load Project' button = refresh selected-test queries synchronously → consistency check → build → load saved projections. No events; no query edits.
+- **Save:** replace-this-project rows; prompt on unsaved switch; conflict warning on later save by someone else; blank not stored, 0 stored.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -144,6 +145,12 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Macro only CALLS refresh — never edits/adds/deletes queries, connections or loaded tables. No event-driven rebuilds.
 - Separate 'Save Projections' button (Q19).
 - Flags: qProjectIOCatalogue (feeds the E6/F6 dropdowns) not refreshed by Load Project — refreshed separately/as today -> confirm.
+
+### Q19 — Save behaviour
+- (a) **Replace this project's rows only.** 'Save Projections' deletes rows for the current project key (Source Project + Main IO) from the hidden store and writes the grid back. Store row = Source Project, Main IO, IO Code, Expense Category, Budget Description (normalised), Month, Amount, Saved By, Saved At. Other projects untouched. No version history.
+- (b) **Unsaved edits on Load Project for another project → prompt 'Save changes to <project> first? Yes / No / Cancel'.**
+- (c) **Conflict check: yes.** On save, if the store's latest Saved At for this project is later than when this user loaded it → warn '<name> saved this project at <time> after you loaded it. Overwrite?'.
+- (d) **Blank ≠ 0.** Blank month not stored; typed 0 stored as 0.
 
 ## Open flags (pending input)
 - Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user

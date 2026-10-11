@@ -1,7 +1,7 @@
 # Handover: Clinical Research Cash Flow Dashboard Timeline
 
 **From session:** 11 October 2026 (design discovery → spec approval)
-**Branch:** `claude/cash-flow-projection-dashboard-x4eqkf` (repo `zkaiiii04/wardrobe-atlas`)
+**Where:** `main` branch of `zkaiiii04/wardrobe-atlas` (the user plans to rename this repo; GitHub redirects the old name). Design work was merged in PR #1.
 **Status:** spec **v1.0 approved**. **Workbook build not started:** the user said "approve, don't create yet".
 
 ---
@@ -91,4 +91,4 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 
 ## 8. Suggested opening message for the next chat
 
-> Continue the Clinical Research Cash Flow dashboard work on branch `claude/cash-flow-projection-dashboard-x4eqkf`. Read `HANDOVER.md`, `CLAUDE.md` and the approved spec in `specs/`. I've uploaded the v0.8 workbook. Start the build in v0.9_working following the handover build plan.
+> Continue the Clinical Research Cash Flow dashboard work in this repo (main branch). Read `HANDOVER.md`, `CLAUDE.md` and the approved spec in `specs/`. I've uploaded the v0.8 workbook. Start the build in v0.9_working following the handover build plan.

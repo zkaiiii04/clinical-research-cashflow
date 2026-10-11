@@ -19,7 +19,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **Cell contents:** values for data (MP, actuals, manual inputs) + grid-local SUM/variance formulas for totals; no table SUMIFS.
 - **Trigger:** 'Load Project' button = refresh selected-test queries synchronously → consistency check → build → load saved projections. No events; no query edits.
 - **Save:** replace-this-project rows; prompt on unsaved switch; conflict warning on later save by someone else; blank not stored, 0 stored.
-- **Unmatched saved projections:** kept, shown in an 'Unmatched' row per category, counted in totals.
+- **Unmatched saved projections:** kept, shown in an 'Unmatched' row per category, counted in totals; out-of-range months in Project Total only (with note); Re-assign / Delete actions available.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -158,9 +158,11 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Captured: **Option 2 — keep them and count them in totals.** Shown in an **'Unmatched' row under each category** (read-only), so category subtotal / Project Total still include them.
 - Flags: saved months outside the new project date range have no month column → proposed: show their amount in the Unmatched row's Project Total (and FY total if the FY exists) only -> confirm. Whether users can re-assign/delete unmatched rows from the dashboard -> confirm.
 
+### Q20b — Unmatched row behaviour
+- (a) **Saved months outside project dates → counted in the Unmatched row's Project Total only**; month detail kept visible via a cell note/comment. No extra month columns.
+- (b) **Users can clean up**: each Unmatched row offers **Re-assign** (pick a current budget line in the same category) and **Delete** via a macro button/form.
+
 ## Open flags (pending input)
-- Unmatched saved months outside project dates: shown in Project Total only? -> user
-- Can users re-assign or delete Unmatched rows (else they persist forever)? -> user
 - Should Load Project also refresh qProjectIOCatalogue, or leave it to Refresh All? -> user
 - Confirm (c) 'enlightened' = 'enough' → no Budget-remaining columns -> user
 - MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)

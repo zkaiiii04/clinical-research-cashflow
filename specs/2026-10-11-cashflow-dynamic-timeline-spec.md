@@ -280,13 +280,13 @@ All of this is done in `v0.9_working` only.
 | 14 | Mismatch guard | Change E6 without loading, then Save → blocked with "Selection changed — reload first" |
 | 15 | Cross-project | Switch to HoW2.0 - Esko Combo, which has AHS manpower lines and EQ/CO/OM budget lines → correct blocks and figures |
 
-## 14. Pending decisions (not covered in Q1–Q31)
+## 14. Decisions made while writing the spec
 
-These came up while writing the spec. Each has a recommended answer that the build will follow unless you say otherwise:
+The user accepted the recommendations for items 1 and 2 ('noted on the 2 decisions'):
 
-1. **Actuals posted outside the project dates** (e.g. a late posting after Project End). *Recommended:* count them in the category's Project Total, and in the FY total if that FY column exists, with a cell note, the same way unmatched projections are handled.
-2. **Monthly variance for months with no SOA yet** (after the Latest SOA Month). *Recommended:* show Variance ($) and (%) only for months up to the Latest SOA Month, and leave later months blank. Quarter, FY and Project Total variances then compare actuals with projections **up to the Latest SOA Month only**, so a future plan isn't reported as underspend.
-3. **Input shading colour:** light yellow `#FFFFE0`, unless your team has a house style.
+1. **Actuals posted outside the project dates** (e.g. a late posting after Project End). *Decided:* count them in the category's Project Total, and in the FY total if that FY column exists, with a cell note, the same way unmatched projections are handled.
+2. **Monthly variance for months with no SOA yet** (after the Latest SOA Month). *Decided:* show Variance ($) and (%) only for months up to the Latest SOA Month, and leave later months blank. Quarter, FY and Project Total variances then compare actuals with projections **up to the Latest SOA Month only**, so a future plan isn't reported as underspend.
+3. **Input shading colour:** light yellow `#FFFFE0` (default; change if there's a house style).
 
 ## 15. Future (not in this build)
 

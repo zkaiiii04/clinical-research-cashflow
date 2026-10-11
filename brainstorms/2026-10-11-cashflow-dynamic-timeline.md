@@ -14,6 +14,7 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - **MP structure:** (option 3, 'for now') MP budget lines (budget only) and manpower lines (projection) listed separately in the MP block; no mapping.
 - **MP manual entry:** none — MP read-only; manual entry only on OM/EQ/CO/OTHER budget lines.
 - **Actuals:** category level only (no line-level actuals).
+- **Rows:** line items carry budget + projection; projected-vs-actual comparison on category subtotal rows only.
 - **Store key:** Source Project + Main IO.
 - **Concurrency:** multiple simultaneous editors are common → save must be per-project row-level merge with who/when stamps; shared-canvas problem resolved by turn-taking (one selector, one driver at a time).
 
@@ -108,6 +109,11 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - Captured: **Actuals at category level only.** Category subtotal rows show Projected / Actual / Variance; no per-line actuals, no transaction-text rule table.
 - Note: OM actuals in Esko Combo are payroll lines ('Sal -  Ald Health') — they will sit in OM category actuals as-is.
 - Flags: confirm whether 'too challenging' also applies to the projection/budget rows (Q14).
+
+### Q14 — Rows inside each category block
+- Asked: Does 'too challenging' apply only to actuals, or to projection rows too?
+- Captured: **Actuals only.** "projections per line item is possible, the comparisons to actual will just be on categorical level which is fine by me."
+- Row model per category: line-item rows (budget + monthly projection; typed for OM/EQ/CO/OTHER, calculated read-only for MP manpower lines; MP budget lines budget-only) → category subtotal block: Projected (sum of lines), Actual, Variance ($), Variance (%).
 
 ## Open flags (pending input)
 - MP may later move to parent/child with a Staff Group→budget-line mapping table -> user (future)

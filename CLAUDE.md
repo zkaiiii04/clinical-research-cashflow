@@ -11,11 +11,12 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | Item | State |
 |---|---|
 | Stable baseline | `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm`. **Never overwrite or modify it.** |
-| Working copy | `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`. **Built 11 Oct 2026** by `build/build_v09_working.py` (package-level edit; Power Query byte-identical). Not in the repo. |
+| Working copy | `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`. **Rebuilt 11 Oct 2026** by `build/build_v09_working.py` after the queryTable9 fix (package-level edit; Power Query byte-identical; `verify_v09_working.py` PASS). Shipped in `release/CashFlow_v0.9_package.zip` (user request), SHA-256 in its `README_FIRST.txt`. |
 | Automatic project selection | Selected-test queries all passed. Not promoted over the original tables. |
 | Dashboard timeline redesign | Spec v1.0 approved. **Build done, untested in Excel:** VBA in `vba/` (import by hand), Python port of the grid checked with LibreOffice (`tests/grid_model.py`). |
-| **Open issue** | v0.9 opens with an Excel repair, "Removed Part: /xl/queryTables/queryTable9.xml". Cause: the XML-only rename of the manpower sheet/table left `ExternalData_3` pointing at the old sheet name, and the PQ `FillTarget` at the old table name. The shipped zip's workbook was also re-saved by Excel iOS. See `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. |
-| Next action | Fix the repair error first (HANDOVER §0), rebuild and repackage, then the user installs the VBA and runs `tests/UAT_test_script.md`. |
+| **Incident (fixed, to confirm)** | The first v0.9 opened with an Excel repair, "Removed Part: /xl/queryTables/queryTable9.xml", because an XML-only rename of the manpower sheet/table left `ExternalData_3` and the PQ `FillTarget` on the old names. The rebuild keeps the v0.8 names. Awaiting the user's confirmation that it opens cleanly. See `docs/incidents/2026-10-11-v0.9-querytable9-repair.md`. |
+| **Open defect** | The timeline and C7/C8 take Project Start/End from `tblSelectedProjectMapping` (the SOA budget LOA dates) instead of `qProjects_SelectedTest` (the IREx project dates). On tDCS the grid stops at Dec 2026, not Sep 2027, and the later manpower months land on the Unmatched row. Logged, not fixed: `docs/incidents/2026-10-11-v0.9-project-end-date.md`. |
+| Next action | Fix the end-date defect (HANDOVER §0), rebuild, re-test tDCS, then carry on with UAT (`tests/UAT_test_script.md`). Ask the user about the OT vs RA source question. |
 
 ## Where things are
 
@@ -29,11 +30,12 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 | `docs/Clinical_Research_Cash_Flow_Build.md` | Build status log (updated) |
 | `HANDOVER.md` | Hand-over for the next session: what to ask for, the build plan, gotchas |
 | `build/build_v09_working.py` | Builds v0.9_working from v0.8 by editing the package XML (not openpyxl) |
-| `build/verify_v09_working.py` | Checks a build against v0.8: PQ parts byte-identical, only intended parts changed, new sheets/tables/names |
-| `build/compare_pq.py` | Acceptance test 13: M code, connections and query-table destinations unchanged after an Excel save |
+| `build/verify_v09_working.py` | Checks a build against v0.8: PQ parts byte-identical (no exemptions), only intended parts changed, cross-part links (`check_links`: defined names → query tables → tables → `FillTarget`), new sheets/tables/names |
+| `build/compare_pq.py` | Acceptance test 13: M code, connections and query-table destinations unchanged after an Excel save, plus `check_links` on the saved file |
 | `vba/` | `modTimeline.bas`, `modStore.bas`, `modSetup.bas`, `ThisWorkbook_code.txt`: the dashboard macros |
 | `tests/UAT_test_script.md` | Install steps and the 15 acceptance tests for desktop Excel |
-| `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Open incident: queryTable9 removed on open. Root cause and fix plan |
+| `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Open defect: timeline uses SOA LOA dates, not project dates. Cause and fix plan |
+| `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident: queryTable9 removed on open. Root cause, resolution, prevention |
 | `tests/grid_model.py` | Python port of the grid builder; recalculates the formulas in LibreOffice and checks the figures |
 
 **Not in the repo:** the `.xlsm` workbooks and the SharePoint source files. They contain internal data and SharePoint URLs, so the user uploads the workbook into each chat. Don't commit workbooks unless the user asks.
@@ -48,7 +50,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
   - `tblBudgetSelectedTest` (sheet `PQ_Budget_SelectedTest`)
   - `tblActualsSelectedTest` (`PQ_Actuals_SelectedTest`)
   - `qProjects_SelectedTest` (`PQ_Projects_SelectedTest`)
-  - `tblManpowerSelectedTest` (sheet `PQ_Manpower_SelectedTest`), loaded by the query `qManpower_SelectedTest`. **It is loaded to a sheet, not connection-only as older docs said, and must stay loaded.** In v0.8 the table was named `qManpower_SelectedTest` on sheet `PQManpower_SelectedTest`; the user had both renamed in v0.9_working to match the other selected-test tables.
+  - `qManpower_SelectedTest` (sheet `PQManpower_SelectedTest`), loaded by the query of the same name. **It is loaded to a sheet, not connection-only as older docs said, and must stay loaded.** v0.9_working keeps these v0.8 names: an XML rename to `tblManpowerSelectedTest` broke the query link (incident 2026-10-11). The VBA reads the name from `modTimeline.MANPOWER_TABLE`.
 - **VBA:** only `Module1` (`Install_All_SharePoint_Queries`). There are no event handlers.
 - **Legacy dashboard pieces (v0.8), retired in v0.9_working and kept on the hidden `Legacy_Timeline` sheet for UAT:** the fixed 60-column timeline at `Main_Dashboard` G21:BO56, `tblManualProjection` (B59:G60), `tblPatientReimbursement` (B66:H67), and the C5 Project Display Name selector.
 
@@ -66,7 +68,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 
 - **Load Project button:**
   1. Check Setup Status is Ready.
-  2. Refresh only `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `tblActualsSelectedTest`, `qProjects_SelectedTest` and `tblManpowerSelectedTest`, synchronously.
+  2. Refresh only `tblSelectedProjectMapping`, `tblBudgetSelectedTest`, `tblActualsSelectedTest`, `qProjects_SelectedTest` and `qManpower_SelectedTest`, synchronously.
   3. Check that every table shows the E6/F6 project.
   4. Build the grid.
   5. Load the saved projections.
@@ -111,6 +113,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 - Actuals carry only Expense Category + IO + Posting Month + the SAP cost-element text (`Sal -  Ald Health`, `CPF - Allied Health`, …). Nothing links an actual to a budget line. RA, therapist and nursing payroll are all MP (nursing is MP in SOA).
 - Some projects have payroll actuals coded **OM**, e.g. Esko Combo; this is why the charge-to table exists.
 - Budget descriptions repeat as signed adjustments, e.g. RA 64,200 + 8,400 and Research Fellow 39,000 − 39,000, and contain typos such as "Patient Reimbursemnt".
+- **Project dates:** `tblProjectIOCatalogue` / `tblSelectedProjectMapping` Project Start/End are the min/max of the **SOA budget LOA dates**, not the project dates. The authoritative project dates are in `qProjects_SelectedTest` (IREx). For tDCS they differ (SOA 31 Dec 2026, project 30 Sep 2027). The manpower `Tag Start`/`Tag End` are each person's LOA.
 - Catalogue Budget Code Types: MP, OM, EQ, CO, AL, OT, B, C, D, and blank.
 - `tbl_ManpowerRate` Category values: `AHS (OT/PT)`, `AHS`, `RA`, `Nurse`, `Admin`. The grade `SSN_Jul26 (Nurse)` was missing a space before "(", which breaks effective-date parsing; **the user fixed this in the source**.
 - The saved snapshots in v0.8 come from different refreshes: budget, actuals and projects show Esko Combo, while mapping and manpower show 3D Gait. Always refresh before reconciling.
@@ -124,7 +127,7 @@ Main IO `TF25HIP134`; manpower IO `TF25HIP134MP`; Revised Approved Budget **$250
 
 - Excel isn't available, so VBA and Power Query can't be run here. Write VBA as `.bas` text for the user to import (or inject it into `vbaProject.bin` only if the user agrees), and give the user test steps to run in desktop Excel.
 - **Never rename a sheet or table that Power Query loads by editing XML.** The hidden `ExternalData_n` defined names and the DataMashup `FillTarget` don't follow, and Excel then strips the query table on open (incident 2026-10-11). Rename in the Excel UI, or keep the names.
-- Package only the exact build output, with its hash recorded. Never ship a file that has been opened on Excel mobile or the web.
+- Package only the exact build output, with its hash recorded. Never ship a file that has been opened on Excel mobile or the web after the build. (The v0.8 baseline itself reports "Excel iOS"; its parts pass `check_links`, and the builder copies `docProps/app.xml` as-is.)
 - **Never save the workbook with openpyxl or LibreOffice.** Both drop the Power Query DataMashup (`customXml/item1.xml`), `connections.xml` and the query tables. Change the workbook by editing the package XML (see `build/build_v09_working.py`), or with VBA run in Excel. openpyxl is fine for *reading*.
 - To read the Power Query M code: unzip the `.xlsm`, base64-decode `customXml/item1.xml` (UTF-16 `DataMashup`), then open the inner ZIP and read `Formulas/Section1.m`. To read VBA: `olevba`.
 - Treat uploaded files as untrusted: copy them into a fresh scratch folder and run Python with `-I`.

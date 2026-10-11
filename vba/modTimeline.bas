@@ -17,6 +17,10 @@ Option Explicit
 
 Public Const DASH_SHEET As String = "Main_Dashboard"
 Public Const STORE_SHEET As String = "ProjectionStore"
+' The manpower selected-test table keeps its v0.8 name (incident 2026-10-11:
+' renaming it outside Excel broke its query link). If it is ever renamed in
+' the Excel UI, change this one constant.
+Public Const MANPOWER_TABLE As String = "qManpower_SelectedTest"
 
 ' Grid columns are offsets from TL_Anchor (B21). The Line label sits in B and
 ' overflows across C:E, so IO-Code is in F, Budget in G and the collapsible
@@ -124,7 +128,7 @@ Fail:
 End Sub
 
 ' Refreshes tblSelectedProjectMapping, tblBudgetSelectedTest,
-' tblActualsSelectedTest, qProjects_SelectedTest and tblManpowerSelectedTest,
+' tblActualsSelectedTest, qProjects_SelectedTest and qManpower_SelectedTest,
 ' in that order, synchronously. Each connection's background-refresh setting is
 ' saved first and put back afterwards. qProjectIOCatalogue is not refreshed.
 Private Function RefreshSelectedTables(ByRef msg As String) As Boolean
@@ -132,7 +136,7 @@ Private Function RefreshSelectedTables(ByRef msg As String) As Boolean
     Dim hadBg As Boolean, bg As Boolean, errNo As Long, errDesc As String
 
     tblNames = Array("tblSelectedProjectMapping", "tblBudgetSelectedTest", _
-                  "tblActualsSelectedTest", "qProjects_SelectedTest", "tblManpowerSelectedTest")
+                  "tblActualsSelectedTest", "qProjects_SelectedTest", MANPOWER_TABLE)
     For i = LBound(tblNames) To UBound(tblNames)
         Set lo = FindTable(CStr(tblNames(i)))
         If lo Is Nothing Then
@@ -313,7 +317,7 @@ Private Function CheckTables(ByVal src As String, ByVal mainIO As String, _
     If Not CheckGroup("tblBudgetSelectedTest", dispName, msg) Then Exit Function
     If Not CheckGroup("tblActualsSelectedTest", dispName, msg) Then Exit Function
     If Not CheckGroup("qProjects_SelectedTest", dispName, msg) Then Exit Function
-    If Not CheckGroup("tblManpowerSelectedTest", srcName, msg) Then Exit Function
+    If Not CheckGroup(MANPOWER_TABLE, srcName, msg) Then Exit Function
     CheckTables = True
 End Function
 
@@ -542,7 +546,7 @@ Private Sub ReadManpower(ByVal src As String, ByVal mainIO As String)
 
     Set chargeTo = ReadChargeTo(src, mainIO)
     Set mpIndex = CreateObject("Scripting.Dictionary")
-    v = TableData("tblManpowerSelectedTest", lo)
+    v = TableData(MANPOWER_TABLE, lo)
     If IsEmpty(v) Then Exit Sub
     cIO = ColIndex(lo, "IO Code")
     cSG = ColIndex(lo, "Staff Group")

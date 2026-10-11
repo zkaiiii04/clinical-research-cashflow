@@ -17,7 +17,7 @@ Public Sub Setup_Dashboard_v09()
     Dim ws As Worksheet, missing As String, t As Variant, nm As Variant, i As Long
 
     For Each t In Array("tblSelectedProjectMapping", "tblBudgetSelectedTest", "tblActualsSelectedTest", _
-                        "qProjects_SelectedTest", "tblManpowerSelectedTest", "tblProjectSelection", _
+                        "qProjects_SelectedTest", modTimeline.MANPOWER_TABLE, "tblProjectSelection", _
                         "tblManpowerChargeTo", "tblProjectionStore")
         If modTimeline.FindTable(CStr(t)) Is Nothing Then missing = missing & vbCrLf & "  table " & t
     Next t

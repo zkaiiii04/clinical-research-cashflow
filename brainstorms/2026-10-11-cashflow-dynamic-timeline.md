@@ -214,15 +214,19 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - (c) **27c1 — 'charge to' setting lives in an admin table** on a settings sheet: Source Project, Main IO, Staff Group, IO Code → Charge To (MP / OM / …). Macro reads it at Load Project; a manpower line charged to OM appears as a locked FTE × rate row in the OM block and counts in OM subtotal.
 - Limitation stated: the setting is per Staff Group + IO line, not per person. User has not yet said whether that's acceptable.
 
+### Q28 — Open-items batch answers
+1. **OK** — charge-to setting is per Staff Group + IO line (not per person).
+2. **OK** — all non-MP/OM/EQ/CO codes (AL, OT, B, C, D) go in one **OTHER** block with the code shown on each line; blank codes appear in OTHER as '(no code)'. OTHER lines accept manual projections.
+3. **OK** — patient reimbursement closed (typed on OM line).
+4. **Yes** — 'enlightened' = 'enough': no Budget-remaining column.
+5. **OK** — Load Project does not refresh qProjectIOCatalogue; Refresh All covers the dropdown list.
+6. **OK** — 'Dashboard loaded by <user> at <time>' notice near selector; no lock.
+7. **OK** — Variance = Actual − Projected (positive = overspend).
+8. **OK** — manpower FTE months outside project dates → MP Unmatched row, Project Total only.
+9. **OK** — 'years' = 'yes': input cells numeric-only, negatives allowed.
+10. User asked what 'rate categories' means → explained (tbl_ManpowerRate Grade/Category; AHS/Nurse rows carry Rate Selected → Resolved Rate Grade + Rate Category) and asked how nurse rows can be told apart.
+
 ## Open flags (pending input)
-1. Charge-to granularity: OK that it's per Staff Group + IO (not per person)? Do OM-paid staff sit on a different IO? -> user
-2. List of rate categories/grades that count as 'Nurse' (for AHS/Nurse split) -> user / admin to supply
-3. How codes AL / OT / B / C / D / blank map to dashboard blocks (Q25a) -> user
-4. Confirm 'enlightened' = 'enough' → no Budget-remaining column -> user
-5. Load Project does not refresh qProjectIOCatalogue (dropdown list) — leave to Refresh All? -> user
-6. 'Dashboard loaded by <user> at <time>' notice (no lock) — wanted? -> user
-7. Variance sign: keep Actual − Projected (positive = overspend)? -> user
-8. Manpower FTE months outside project dates → MP Unmatched row, Project Total only? -> user
-9. Confirm 'years' = 'yes' for numeric-only validation on input cells -> user
-10. Anything not covered: charts, print/export, number format (whole $ vs cents), who may save -> user
+- How to tell Nurse rows from Allied Health rows in DB_AHS_Nurse_Distrib (rate grade/category values, or another source column) -> user / admin
+- Item 11: anything not covered (charts, print/export, number format, who may save) -> user
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

@@ -60,9 +60,10 @@ Replace the fixed timeline on `Main_Dashboard` (G21:BO56: 60 pre-formatted colum
 ### 5.2 Columns
 
 ```
-| Category | Line | Code | IO | Budget | <months + quarter totals …> | <FY/CY totals …> | Project Total |
+| Line | IO · Code | Budget | <months + quarter totals …> | <FY/CY totals …> | Project Total |
 ```
 
+- **IO · Code:** one column holding the IO and its budget code together, e.g. `TF25HIP136 MP`, `TF25HIP136 OM`, `TF25HIP136 AL`. Manpower lines show their manpower IO alone, e.g. `TF25HIP136MP`. The cell is **merged vertically** across consecutive lines in a block that share the same value, so the IO isn't repeated on every line. The category name is shown on the block header row rather than in its own column.
 - **Months:** every month from the first month of Project Start to the month of Project End, using the Main IO row of `tblSelectedProjectMapping`.
 - **Quarter total:** placed straight after the last active month of each quarter. Quarters at the start and end of the project hold only their active months.
 - **Quarter labels:**
@@ -97,9 +98,9 @@ The block order is **MP, OM, EQ, CO, OTHER**, followed by **PROJECT TOTAL**. A b
 1. **MP budget lines.** One row per IO + normalised Budget Description, showing the net Budget only. The month cells are blank and greyed out.
 2. **Manpower lines** (read-only).
    - One row per **Rate Category + IO Code**, where the charge-to setting is MP (the default).
-   - Label: `<Rate Category> | <IO>`, using the rate table's Category text as written, e.g. `RA | TF25HIP134MP`, `AHS (OT/PT) | …`, `AHS | …`, `Nurse | …`.
+   - Label: the rate table's Category text as written, e.g. `RA`, `AHS (OT/PT)`, `AHS`, `Nurse`. The manpower IO is shown in the IO · Code column, not in the label.
    - Month value = the sum of Projected Amount ($) for that month.
-   - Rows with **Rate Status = "Rate not found"** go on a `<Staff Group> | <IO> ⚠ Rate not found` row, which shows a blank or $0 amount.
+   - Rows with **Rate Status = "Rate not found"** go on a `<Staff Group> ⚠ Rate not found` row, which shows a blank or $0 amount.
    - An **Admin** category isn't expected. If one appears, the row is shown anyway and Load Project warns about it.
 3. **Unmatched row,** shown only when needed. It holds manpower months that fall outside the project dates (§9).
 4. **Subtotal rows:** Projected, Actual, Variance ($), Variance (%).
@@ -113,7 +114,7 @@ The block order is **MP, OM, EQ, CO, OTHER**, followed by **PROJECT TOTAL**. A b
 3. **Unmatched row,** shown only when needed (§9).
 4. **Subtotal rows:** Projected, Actual, Variance ($), Variance (%).
 
-OTHER holds every Budget Code Type that isn't MP, OM, EQ or CO (currently AL, OT, B, C, D). The **Code** column shows the code on each line. A blank code is shown as `(no code)`.
+OTHER holds every Budget Code Type that isn't MP, OM, EQ or CO (currently AL, OT, B, C, D). The **IO · Code** column shows the code with the IO (e.g. `TR25NMR043 AL`). A blank code is shown as `(no code)`.
 
 **PROJECT TOTAL:** Budget, Projected, Actual, Variance ($) and Variance (%) across all blocks.
 

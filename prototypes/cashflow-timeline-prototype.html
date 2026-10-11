@@ -78,7 +78,7 @@ table.tl{border-collapse:separate;border-spacing:0;font-size:.8rem;min-width:100
 .tl th.lab,.tl td.lab{text-align:left}
 .tl td.lab{min-width:230px;max-width:300px;white-space:normal}
 .tl td.num{font-family:var(--font-num);text-align:right;font-variant-numeric:tabular-nums;min-width:74px}
-.tl td.code,.tl td.io{font-family:var(--font-num);font-size:.74rem;color:var(--fg-2)}
+.tl td.io{font-family:var(--font-num);font-size:.74rem;color:var(--fg-2);vertical-align:middle;background:var(--surface)}
 .neg{color:var(--neg)}
 .qbtn{border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);padding:0 5px;font-size:.72rem;line-height:1.3;border-radius:4px;margin-left:5px;font-family:var(--font-num)}
 .hdr-q1{background:var(--q1)!important} .hdr-q2{background:var(--q2)!important} .hdr-q3{background:var(--q3)!important} .hdr-q4{background:var(--q4)!important}
@@ -199,6 +199,7 @@ td.hasnote::after{content:"";position:absolute;top:0;right:0;border-left:7px sol
       <li>Variance compares actuals with projections only up to the Latest SOA Month, so planned spend in later months is not counted as underspend.</li>
       <li>3D Gait has saved projections, including one against an old line name ("Publications") and one in a month after the project end. They appear as Unmatched rows, are counted in the totals, and can be re-assigned or deleted.</li>
       <li>Esko Combo has one manpower line charged to OM (shown in the OM block) and one manpower line with no matching rate.</li>
+      <li>The IO · Code column shows the IO with its budget code (e.g. TF25HIP136 OM) and is merged across consecutive lines that share it. Manpower lines show their manpower IO only.</li>
       <li>With the agreed number format, a negative variance (underspend) also shows in red brackets. Tell me if you would rather colour variance by meaning.</li>
       <li>Sample figures: the 3D Gait totals match the reconciled checkpoints ($250,000 budget, $68,563.67 actuals, $62,250 RA projection), but how they are spread across months is made up. Esko Combo uses the budget lines and actuals saved in v0.8; its manpower lines are made up. The two projects are shown with the same Latest SOA Month for simplicity.</li>
     </ul>
@@ -317,7 +318,7 @@ function buildBlocks(p,key){
   p.manpower.forEach(mp=>{ const ct=CHARGE_TO.find(c=>c.source===p.source&&c.cat===mp.cat&&c.io===mp.io); const to=ct?ct.to:"MP";
     const vals={}; let oor=0; const oorList=[];
     Object.entries(mp.months).forEach(([ym,v])=>{ if(months.has(ym)) vals[ym]=v; else if(v!=null){ oor+=v; oorList.push(mLabel(ym)); } });
-    const label=mp.rnf? mp.group+" | "+mp.io+" ⚠ Rate not found" : mp.cat+" | "+mp.io+(to!=="MP"?"  ⚙ manpower → "+to:"");
+    const label=mp.rnf? mp.group+" ⚠ Rate not found" : mp.cat+(to!=="MP"?"  ⚙ manpower → "+to:"");
     B(mp.rnf?"MP":to).rows.push({id:"r"+Math.random().toString(36).slice(2,8),kind:mp.rnf?"rnf":"calc",label,code:"MP",io:mp.io,budget:null,vals,oor,oorNote:oorList.join(", ")});
   });
   // saved projections
@@ -355,16 +356,19 @@ function periodVals(c, calc, months){ // returns {proj, act, var, pct}
 function colClass(c){ if(c.type==="m") return "m-q"+c.q+" mcell q-"+c.qid; if(c.type==="q") return "t-q"+c.q+" tcol"; if(c.type==="fy") return "fycol tcol"; return "ptcol tcol"; }
 function colMonths(c){ return c.type==="m"?[c.ym]:c.months; }
 function render(){
-  const {cols,quarters}=S.cols; let h="<table class='tl'><thead><tr class='qrow'><th class='lab' rowspan='2'>Line</th><th rowspan='2'>Code</th><th rowspan='2'>IO</th><th rowspan='2'>Budget</th>";
+  const {cols,quarters}=S.cols; let h="<table class='tl'><thead><tr class='qrow'><th class='lab' rowspan='2'>Line</th><th rowspan='2'>IO · Code</th><th rowspan='2'>Budget</th>";
   quarters.forEach(Q=>{ const col=S.collapsed.has(Q.id); h+=`<th class="hdr-q${Q.q}" colspan="${col?1:Q.months.length+1}" data-qh="${Q.id}">${Q.label}<button class="qbtn" data-q="${Q.id}" aria-label="${col?"Expand":"Collapse"} ${Q.label}">${col?"+":"−"}</button></th>`; });
   const fyc=cols.filter(c=>c.type==="fy").length; h+=`<th class="fycol" colspan="${fyc}">${S.loaded.basis==="Financial Year"?"Financial year totals":"Calendar year totals"}</th><th class="ptcol" rowspan="2">Project<br>Total</th></tr><tr>`;
   cols.forEach(c=>{ if(c.type==="pt") return; const hid=c.type==="m"&&S.collapsed.has(c.qid)?" hide":"";
     const lbl=c.type==="m"?mLabel(c.ym):c.type==="q"?"Q Total":c.label; h+=`<th class="${c.type==="m"?"hdr-q"+c.q+" q-"+c.qid:c.type==="q"?"hdr-q"+c.q:"fycol"}${hid}" style="${c.type==="m"?"font-weight:500":""}">${lbl}</th>`; });
   h+="</tr></thead><tbody>";
   S.blocks.forEach((b,bi)=>{
-    h+=`<tr class="block"><td class="lab" colspan="${4+cols.length}">${b.cat==="OTHER"?"OTHER (AL, OT, B, C, D …)":b.cat}</td></tr>`;
-    b.rows.forEach(r=>{
-      h+=`<tr class="${r.kind}${S.sel===r.id?" sel":""}" data-row="${r.id}"><td class="lab">${esc(r.label)}</td><td class="code">${esc(r.code)}</td><td class="io">${esc(r.io)}</td><td class="num" id="b-${r.id}"></td>`;
+    const ioKey=r=>(r.kind==="calc"||r.kind==="rnf")?r.io:r.io+" "+r.code;
+    h+=`<tr class="block"><td class="lab" colspan="${3+cols.length}">${b.cat==="OTHER"?"OTHER (AL, OT, B, C, D …)":b.cat}</td></tr>`;
+    b.rows.forEach((r,ri)=>{
+      let ioCell=""; const kk=ioKey(r);
+      if(ri===0||ioKey(b.rows[ri-1])!==kk){ let n=1; while(ri+n<b.rows.length&&ioKey(b.rows[ri+n])===kk) n++; ioCell=`<td class="io" rowspan="${n}">${esc(kk)}</td>`; }
+      h+=`<tr class="${r.kind}${S.sel===r.id?" sel":""}" data-row="${r.id}"><td class="lab">${esc(r.label)}</td>${ioCell}<td class="num" id="b-${r.id}"></td>`;
       cols.forEach((c,ci)=>{ const hid=c.type==="m"&&S.collapsed.has(c.qid)?" hide":"";
         if(c.type==="m"&&r.kind==="input"){ const v=(S.inputs[r.id]||{})[c.ym]; h+=`<td class="num inp ${colClass(c)}${hid}"><input id="i-${r.id}-${c.ym}" data-r="${r.id}" data-m="${c.ym}" inputmode="decimal" aria-label="${esc(r.label)} ${mLabel(c.ym)}" value="${v==null?"":Math.round(v).toLocaleString("en-US")}"></td>`; }
         else { const note=c.type==="pt"&&r.oor?` hasnote" title="Saved months outside the project dates: ${esc(r.oorNote)}`:""; h+=`<td class="num ${colClass(c)}${hid}${note}" id="c-${r.id}-${ci}"></td>`; }
@@ -372,13 +376,13 @@ function render(){
       h+="</tr>";
     });
     [["Projected","P"],["Actual","A"],["Variance ($)","V"],["Variance (%)","%"]].forEach(([n,t],i)=>{
-      h+=`<tr class="sub${i===0?" first":""}"><td class="lab">${b.cat} ${n}</td><td></td><td></td><td class="num" id="sb-${bi}-${t}"></td>`;
+      h+=`<tr class="sub${i===0?" first":""}"><td class="lab">${b.cat} ${n}</td><td></td><td class="num" id="sb-${bi}-${t}"></td>`;
       cols.forEach((c,ci)=>{ const hid=c.type==="m"&&S.collapsed.has(c.qid)?" hide":""; h+=`<td class="num ${colClass(c)}${hid}" id="s-${bi}-${t}-${ci}"${t==="V"||t==="%"?` title="Actual minus projected, up to ${mLong(S.loaded.p.soa)}"`:""}></td>`; });
       h+="</tr>";
     });
   });
   [["PROJECT TOTAL Projected","P"],["PROJECT TOTAL Actual","A"],["PROJECT TOTAL Variance ($)","V"],["PROJECT TOTAL Variance (%)","%"]].forEach(([n,t])=>{
-    h+=`<tr class="ptot"><td class="lab">${n}</td><td></td><td></td><td class="num" id="tb-${t}"></td>`;
+    h+=`<tr class="ptot"><td class="lab">${n}</td><td></td><td class="num" id="tb-${t}"></td>`;
     cols.forEach((c,ci)=>{ const hid=c.type==="m"&&S.collapsed.has(c.qid)?" hide":""; h+=`<td class="num${hid}" id="t-${t}-${ci}"></td>`; });
     h+="</tr>";
   });

@@ -2,11 +2,11 @@
 
 **From session:** 11 October 2026 (design discovery → spec approval)
 **Where:** `main` branch of `zkaiiii04/clinical-research-cashflow` (renamed from `wardrobe-atlas` on 11 Oct 2026; GitHub redirects the old name). Design work was merged in PR #1; the unrelated Wardrobe Atlas page was removed in PR #2.
-**Status:** spec **v1.0 approved** (revision v1.0.3). v0.9_working is built and **in UAT**. Both 11 Oct issues are **closed and confirmed by the user in desktop Excel**: the queryTable9 repair and the timeline end date. Next: finish UAT (§0), then promote the selected-test queries.
+**Status:** spec **v1.0 approved** (revision v1.0.4). v0.9_working is built and **in UAT**. Both 11 Oct issues are closed and confirmed in desktop Excel. 12 Oct: the selector moved to row 5 (VBA updated), and the user asked why variance is blank after the Latest SOA Month (explained in §0.1). Next: finish UAT (§0), then promote the selected-test queries.
 
 ---
 
-## 0. START HERE: UAT in progress (as of 11 Oct 2026)
+## 0. START HERE: UAT in progress (as of 12 Oct 2026)
 
 **Where things stand:**
 - v0.9_working (spec v1.0.3) is built. `release/CashFlow_v0.9_package.zip` on `main` has the workbook and its SHA-256 in `README_FIRST.txt`, plus the current `vba/` modules (CRLF; import them from the zip, not GitHub "Raw").
@@ -17,7 +17,25 @@
 - **Selector moved to row 5 (user, in their working copy).** The VBA now reads the selector cells from constants at the top of `vba/modTimeline.bas` (`SEL_PROJECT` = E5, `SEL_MAINIO` = F5, `SEL_STATUS` = G5; `NOTICE_CELL` = E7, `BASIS_CELL` = C6, `REFRESHED_CELL` = C10). `modStore` and `modSetup` use them too.
   - The workbook formulas that must point at the new cells: `Lists!N4:P4` (`=Main_Dashboard!E5/F5/G5`), the Setup Status formula (now G5, referencing E5/F5), and the data validations on E5 (`CatalogueProjectNames`) and F5 (`SelectedProjectIOCodes`). These follow automatically if the cells were cut and pasted.
   - **Mismatch to fix before any rebuild:** `build/build_v09_working.py` and the release workbook still put the selector in row 6. Either teach the build the row-5 layout (ask the user for their current workbook to copy the exact layout) or set the constants back to row 6 for a fresh install.
-- **Blank Actual/Variance after the Latest SOA Month (tDCS: FY26/Q3 onwards and FY27 Total):** this is the agreed rule (spec §14.2). The macro writes no Actual or Variance cells for months, quarters or FY columns that lie wholly after the Latest SOA Month (Aug 2026). The Projected rows are complete. Waiting for the user to choose: keep as is; show Actual as 0 in future periods (variance still blank); or something else.
+- **Blank Actual/Variance after the Latest SOA Month** (tDCS: FY26/Q3 onwards and the FY27 Total, in every category): this is the agreed rule, not missing formulas. See §0.1 for the explanation to give the user. The Projected rows are complete. **Open decision for the user:** keep as is, or show Actual as 0 in future periods while Variance stays blank.
+
+### 0.1 Why Variance (and Actual) is left blank after the Latest SOA Month
+
+The **Latest SOA Month** is the last month that has posted actuals in SOA (`MAX(tblActualsSelectedTest[Posting Month])`, shown in C9; for tDCS it's Aug 2026). For months after it, **no actuals have been posted yet**. That doesn't mean nothing was spent; the spending just hasn't been recorded.
+
+If the dashboard calculated Variance = Actual − Projected for those months:
+- Actual would be 0 (nothing posted), so every future month would show Variance = −Projected.
+- Quarter, FY and Project Total variances would add up all those negatives, and the project would look **heavily underspent**. For tDCS, every planned dollar from Sep 2026 to Sep 2027 would count as "underspend".
+- That figure would be wrong and would change every month as SOA catches up. It would hide the real question: how is spending tracking against plan **for the months we actually have data for**?
+
+So the rule (spec §14.2, accepted by the user on 11 Oct 2026) is:
+- **Months, quarters and FY columns that lie entirely after the Latest SOA Month** get no Actual, Variance ($) or Variance (%) cells. They stay blank, not 0.
+- **A period that straddles the Latest SOA Month** (e.g. FY26/Q2 = Jul–Sep 2026 with SOA at Aug) shows Actual for its posted months, and Variance compares those actuals only with the projections **up to the Latest SOA Month**.
+- **The Project Total** Variance is actuals to date minus projections to date. Variance (%) = Variance ÷ projections to date.
+- **The Projected rows** always run for the whole project, so the full plan stays visible.
+- **The cut-off moves forward on its own:** when the next month's SOA is posted and the user clicks Load Project, that month's (and quarter's) Actual and Variance appear.
+
+Code: `MonthLE` / `YearLE` and `WriteBlockSubtotals` / `WriteProjectTotal` in `vba/modTimeline.bas`. Tests: the "No variance after the Latest SOA Month" and "variance uses projections to SOA only" checks in `tests/grid_model.py`.
 
 **Next session:**
 1. Ask the user for their UAT results: the 16 tests in `tests/UAT_test_script.md`, including test 16 (tDCS project dates) and the Debug → Compile result. Fix what fails. If grid logic changes, keep `tests/grid_model.py` in step with `vba/modTimeline.bas` and re-run it (43 checks).
@@ -142,7 +160,7 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 
 ## 8. Suggested opening message for the next chat
 
-> Continue the Clinical Research Cash Flow dashboard work in zkaiiii04/clinical-research-cashflow (main). Read `HANDOVER.md` (start at §0) and `CLAUDE.md`. Here are my UAT results and my current v0.9_working.
+> Continue the Clinical Research Cash Flow dashboard work in zkaiiii04/clinical-research-cashflow (main). Read `HANDOVER.md` (start at §0) and `CLAUDE.md`. Here are my UAT results and my current v0.9_working (selector now in row 5).
 
 ## 9. Build session (11 Oct 2026): what was done and what's next
 

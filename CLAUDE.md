@@ -89,7 +89,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
   - MP is never typed into.
 - **Charge-to:** `tblManpowerChargeTo` on `Dashboard_Settings` moves a manpower line into another block as a locked row, e.g. AHS paid through OM.
 - **Actuals:** compared at **category level only**. Each block ends with Projected, Actual, Variance ($) = Actual − Projected, and Variance (%).
-  - Variance is shown only up to the Latest SOA Month.
+  - Variance is shown only up to the Latest SOA Month. After it nothing has been posted yet, so a variance would show the whole future plan as underspend. Actual/Variance cells for periods wholly after the Latest SOA Month are left blank (HANDOVER §0.1).
   - Actuals posted outside the project dates count in the Project Total, with a cell note.
 - **Cells:** plain values for data, and grid-local formulas for totals. No SUMIFS against Power Query tables.
 - **Store:**

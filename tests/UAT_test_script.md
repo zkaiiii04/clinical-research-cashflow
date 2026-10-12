@@ -187,6 +187,9 @@ Expected:
 - IO·Code reads `TF25HIP136MP` / `TF25HIP136OM` / `TF25HIP136EQ` / `TF25HIP136CO`, merged down each run.
 - Its payroll actuals coded OM show in **OM Actual**.
 
+### Note on blank cells
+Actual, Variance ($) and Variance (%) are deliberately blank for months, quarters and FY columns entirely after the Latest SOA Month (C9). Nothing has been posted for them yet, so a variance would show the whole future plan as underspend. They fill in after the next SOA month is posted and you click Load Project. This is expected, not a failure.
+
 ### 16. Project dates come from the project, not the SOA budget LOA (tDCS)
 1. Select tDCS (Main IO `TF24HIP134`) and click Load Project.
 

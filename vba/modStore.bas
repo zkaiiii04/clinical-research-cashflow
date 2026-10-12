@@ -16,7 +16,14 @@ Attribute VB_Name = "modStore"
 ' no sheet events are needed.
 '
 ' The grid layout (which sheet row is which line) is written to
-' ProjectionStore!M:S by Load Project and read back here.
+' ProjectionStore!M:T by Load Project and read back here.
+'
+' Remarks (spec 5.5) are kept in a plain range on ProjectionStore, W:AD, one
+' row per line that has a remark: Source Project | Main IO | Line Ref | Block |
+' Description | Remark | Saved By | Saved At. tblProjectionStore is unchanged.
+' Line Ref is the line's remark key (modTimeline TLine.RemarkRef). Every saved
+' remark is shown on Load (on its line, or on an Unmatched row), so Save
+' replaces the project's remarks with the Remarks column as a whole.
 '==============================================================================
 Option Explicit
 
@@ -34,7 +41,18 @@ Public Const S_AT As Long = 11
 Private Const S_COLS As Long = 11
 
 Private Const LAYOUT_COL As Long = 13       ' ProjectionStore!M
-Private Const LAYOUT_COLS As Long = 7       ' Row, Kind, Block, IO, Code, Line Key, Description
+Private Const LAYOUT_COLS As Long = 8       ' Row, Kind, Block, IO, Code, Line Key, Description, Remark Ref
+
+Public Const R_SRC As Long = 1
+Public Const R_MAINIO As Long = 2
+Public Const R_REF As Long = 3
+Public Const R_BLOCK As Long = 4
+Public Const R_DESC As Long = 5
+Public Const R_TEXT As Long = 6
+Public Const R_BY As Long = 7
+Public Const R_AT As Long = 8
+Private Const R_COLS As Long = 8
+Private Const REMARK_COL As Long = 23       ' ProjectionStore!W
 
 Private Const NAME_PROJECT As String = "TL_LoadedProject"
 Private Const NAME_MAINIO As String = "TL_LoadedMainIO"
@@ -43,6 +61,7 @@ Private Const NAME_HASH As String = "TL_InputHash"
 Private Const NAME_SPAN As String = "TL_GridSpan"
 
 Private mSavedCount As Long
+Private mSavedRemarks As Long
 
 '==============================================================================
 ' Button: Save Projections (spec 10.2)
@@ -50,8 +69,8 @@ Private mSavedCount As Long
 Public Sub SaveProjections()
     On Error GoTo Fail
     If SaveCore(False) Then
-        MsgBox "Saved " & mSavedCount & " projection value(s) for " & LoadedProject() & ".", _
-               vbInformation, "Save Projections"
+        MsgBox "Saved " & mSavedCount & " projection value(s) and " & mSavedRemarks & _
+               " remark(s) for " & LoadedProject() & ".", vbInformation, "Save Projections"
     End If
     Exit Sub
 Fail:
@@ -143,6 +162,7 @@ NextRow:
     Next i
 
     WriteStore out, nOut
+    mSavedRemarks = SaveRemarks(src, mainIO, lay, nLay, who, nowStamp)
     SetNameText NAME_AT, Trim$(Str$(CDbl(Now)))
     SetNameText NAME_HASH, HashInputs()
     If skipped > 0 Then MsgBox skipped & " cell(s) held text instead of a number and were not saved.", _
@@ -156,6 +176,7 @@ End Function
 Public Sub ReassignUnmatched()
     Dim lay As Variant, nLay As Long, sel As Long, tgt As Long, target As Range
     Dim src As String, mainIO As String, moved As Long, fromKey As String, toKey As String
+    Dim remMoved As Boolean
     On Error GoTo Fail
     If Not PrepareUnmatched("Re-assign unmatched", lay, nLay, sel) Then Exit Sub
     src = LoadedProject(): mainIO = LoadedMainIO()
@@ -191,13 +212,15 @@ Public Sub ReassignUnmatched()
     fromKey = modTimeline.Identity(CStr(lay(sel, 3)), CStr(lay(sel, 5)), CStr(lay(sel, 4)), CStr(lay(sel, 6)))
     toKey = modTimeline.Identity(CStr(lay(tgt, 3)), CStr(lay(tgt, 5)), CStr(lay(tgt, 4)), CStr(lay(tgt, 6)))
     moved = MoveRows(src, mainIO, fromKey, lay, nLay, tgt)
-    If moved = 0 Then
+    remMoved = MoveRemark(src, mainIO, LayRef(lay, sel), LayRef(lay, tgt), CStr(lay(tgt, 3)), CStr(lay(tgt, 7)))
+    If moved = 0 And Not remMoved Then
         MsgBox "Nothing to move: these saved amounts are all in months outside the project dates. " & _
                "You can delete them instead.", vbInformation, "Re-assign unmatched"
         Exit Sub
     End If
     modTimeline.BuildGrid False
-    MsgBox moved & " saved amount(s) moved to """ & lay(tgt, 7) & """.", vbInformation, "Re-assign unmatched"
+    MsgBox moved & " saved amount(s)" & IIf(remMoved, " and the remark", "") & " moved to """ & _
+           lay(tgt, 7) & """.", vbInformation, "Re-assign unmatched"
     Exit Sub
 Fail:
     MsgBox "Re-assign stopped: " & Err.Description, vbExclamation, "Re-assign unmatched"
@@ -205,15 +228,18 @@ End Sub
 
 Public Sub DeleteUnmatched()
     Dim lay As Variant, nLay As Long, sel As Long, removed As Long, label As String
+    Dim remDeleted As Boolean
     On Error GoTo Fail
     If Not PrepareUnmatched("Delete unmatched", lay, nLay, sel) Then Exit Sub
     label = CStr(modTimeline.DashSheet().Cells(CLng(lay(sel, 1)), ThisWorkbook.Names("TL_Anchor").RefersToRange.Column).Value)
-    If MsgBox(label & vbCrLf & vbCrLf & "Delete these saved amounts? This can't be undone.", _
+    If MsgBox(label & vbCrLf & vbCrLf & "Delete this row's saved amounts and remark? This can't be undone.", _
               vbYesNo + vbExclamation + vbDefaultButton2, "Delete unmatched") <> vbYes Then Exit Sub
     removed = DeleteRows(LoadedProject(), LoadedMainIO(), _
         modTimeline.Identity(CStr(lay(sel, 3)), CStr(lay(sel, 5)), CStr(lay(sel, 4)), CStr(lay(sel, 6))), lay, nLay)
+    remDeleted = DeleteRemark(LoadedProject(), LoadedMainIO(), LayRef(lay, sel))
     modTimeline.BuildGrid False
-    MsgBox removed & " saved amount(s) deleted.", vbInformation, "Delete unmatched"
+    MsgBox removed & " saved amount(s)" & IIf(remDeleted, " and the remark", "") & " deleted.", _
+           vbInformation, "Delete unmatched"
     Exit Sub
 Fail:
     MsgBox "Delete stopped: " & Err.Description, vbExclamation, "Delete unmatched"
@@ -445,6 +471,17 @@ Private Function SavedSinceLoad(ByVal src As String, ByVal mainIO As String, _
             End If
         End If
     Next i
+    n = ReadRemarks(data)
+    For i = 1 To n
+        If RemarkIsKey(data, i, src, mainIO) Then
+            If modTimeline.ToDate(data(i, R_AT), d) Then
+                If CDbl(d) > best Then
+                    best = CDbl(d)
+                    lastBy = modTimeline.CleanText(data(i, R_BY))
+                End If
+            End If
+        End If
+    Next i
     loadedAt = Val(NameText(NAME_AT))
     If best > 0 And best > loadedAt + 1 / 86400 Then
         lastAt = CDate(best)
@@ -454,10 +491,162 @@ Private Function SavedSinceLoad(ByVal src As String, ByVal mainIO As String, _
 End Function
 
 '==============================================================================
-' Grid layout (ProjectionStore!M:S) and session state
+' Remarks (ProjectionStore!W:AD, spec 5.5)
+'==============================================================================
+' All remark rows (blank rows skipped) as rd(1..n, 1..8). Returns n.
+Public Function ReadRemarks(ByRef rd As Variant) As Long
+    Dim ws As Worksheet, last As Long, v As Variant, i As Long, j As Long, n As Long
+    Set ws = ThisWorkbook.Worksheets(modTimeline.STORE_SHEET)
+    last = ws.Cells(ws.Rows.Count, REMARK_COL).End(xlUp).Row
+    If last < 2 Then Exit Function
+    v = ws.Range(ws.Cells(2, REMARK_COL), ws.Cells(last, REMARK_COL + R_COLS - 1)).Value
+    ReDim rd(1 To UBound(v, 1), 1 To R_COLS)
+    For i = 1 To UBound(v, 1)
+        If modTimeline.CleanText(v(i, R_SRC)) <> "" Then
+            n = n + 1
+            For j = 1 To R_COLS
+                rd(n, j) = v(i, j)
+            Next j
+        End If
+    Next i
+    ReadRemarks = n
+End Function
+
+Public Function RemarkIsKey(ByRef rd As Variant, ByVal i As Long, ByVal src As String, ByVal mainIO As String) As Boolean
+    RemarkIsKey = modTimeline.SameText(rd(i, R_SRC), src) And modTimeline.SameText(rd(i, R_MAINIO), mainIO)
+End Function
+
+' Replaces the remarks area with out(1..n) and rewrites its header row.
+Private Sub WriteRemarkRows(ByRef out() As Variant, ByVal n As Long)
+    Dim ws As Worksheet, last As Long, v() As Variant, i As Long, j As Long, body As Range
+    Set ws = ThisWorkbook.Worksheets(modTimeline.STORE_SHEET)
+    ws.Range(ws.Cells(1, REMARK_COL), ws.Cells(1, REMARK_COL + R_COLS - 1)).Value = _
+        Array("Source Project", "Main IO", "Line Ref", "Block", "Description", "Remark", "Saved By", "Saved At")
+    last = ws.Cells(ws.Rows.Count, REMARK_COL).End(xlUp).Row
+    If last >= 2 Then ws.Range(ws.Cells(2, REMARK_COL), ws.Cells(last, REMARK_COL + R_COLS - 1)).Clear
+    If n = 0 Then Exit Sub
+    Set body = ws.Range(ws.Cells(2, REMARK_COL), ws.Cells(n + 1, REMARK_COL + R_COLS - 1))
+    body.Columns(R_SRC).Resize(, R_BY).NumberFormat = "@"
+    body.Columns(R_AT).NumberFormat = "dd mmm yyyy hh:mm:ss"
+    ReDim v(1 To n, 1 To R_COLS)
+    For i = 1 To n
+        For j = 1 To R_COLS
+            v(i, j) = out(i, j)
+        Next j
+    Next i
+    body.Value = v
+End Sub
+
+' Save: other projects' remarks are kept; this project's are replaced by the
+' non-blank Remarks cells of the grid. Returns the number saved. Does nothing
+' when the grid was built before remarks existed (no Remarks column).
+Private Function SaveRemarks(ByVal src As String, ByVal mainIO As String, ByRef lay As Variant, _
+                             ByVal nLay As Long, ByVal who As String, ByVal stamp As Date) As Long
+    Dim rd As Variant, n As Long, i As Long, j As Long, rc As Long, ws As Worksheet
+    Dim out() As Variant, nOut As Long, v As Variant, ref As String
+    rc = RemarkColumn()
+    If rc = 0 Then Exit Function
+    Set ws = modTimeline.DashSheet()
+    n = ReadRemarks(rd)
+    ReDim out(1 To n + nLay + 1, 1 To R_COLS)
+    For i = 1 To n
+        If Not RemarkIsKey(rd, i, src, mainIO) Then
+            nOut = nOut + 1
+            For j = 1 To R_COLS
+                out(nOut, j) = rd(i, j)
+            Next j
+        End If
+    Next i
+    For i = 1 To nLay
+        ref = LayRef(lay, i)
+        v = ws.Cells(CLng(lay(i, 1)), rc).Value2
+        If ref <> "" And Not IsError(v) Then
+            If Trim$(CStr(v)) <> "" Then
+                nOut = nOut + 1
+                out(nOut, R_SRC) = src
+                out(nOut, R_MAINIO) = mainIO
+                out(nOut, R_REF) = ref
+                out(nOut, R_BLOCK) = lay(i, 3)
+                out(nOut, R_DESC) = lay(i, 7)
+                out(nOut, R_TEXT) = CStr(v)
+                out(nOut, R_BY) = who
+                out(nOut, R_AT) = stamp
+                SaveRemarks = SaveRemarks + 1
+            End If
+        End If
+    Next i
+    WriteRemarkRows out, nOut
+End Function
+
+' Re-assign: the Unmatched row's remark goes to the target line, after any
+' remark the target already has. True when a remark was moved.
+Private Function MoveRemark(ByVal src As String, ByVal mainIO As String, ByVal fromRef As String, _
+                            ByVal toRef As String, ByVal toBlock As String, ByVal toDesc As String) As Boolean
+    Dim rd As Variant, n As Long, i As Long, j As Long, iFrom As Long, iTo As Long, iDrop As Long
+    Dim out() As Variant, nOut As Long
+    If fromRef = "" Or toRef = "" Or fromRef = toRef Then Exit Function
+    n = ReadRemarks(rd)
+    For i = 1 To n
+        If RemarkIsKey(rd, i, src, mainIO) Then
+            If modTimeline.SameText(rd(i, R_REF), fromRef) Then iFrom = i
+            If modTimeline.SameText(rd(i, R_REF), toRef) Then iTo = i
+        End If
+    Next i
+    If iFrom = 0 Then Exit Function
+    If iTo > 0 Then
+        rd(iTo, R_TEXT) = CStr(rd(iTo, R_TEXT)) & " | " & CStr(rd(iFrom, R_TEXT))
+        iDrop = iFrom
+    Else
+        rd(iFrom, R_REF) = toRef
+        rd(iFrom, R_BLOCK) = toBlock
+        rd(iFrom, R_DESC) = toDesc
+        iTo = iFrom
+    End If
+    rd(iTo, R_BY) = Application.UserName
+    rd(iTo, R_AT) = Now
+    ReDim out(1 To n, 1 To R_COLS)
+    For i = 1 To n
+        If i <> iDrop Then
+            nOut = nOut + 1
+            For j = 1 To R_COLS
+                out(nOut, j) = rd(i, j)
+            Next j
+        End If
+    Next i
+    WriteRemarkRows out, nOut
+    SetNameText NAME_AT, Trim$(Str$(CDbl(Now)))
+    MoveRemark = True
+End Function
+
+' Delete: removes the Unmatched row's remark. True when one was removed.
+Private Function DeleteRemark(ByVal src As String, ByVal mainIO As String, ByVal ref As String) As Boolean
+    Dim rd As Variant, n As Long, i As Long, j As Long, out() As Variant, nOut As Long
+    If ref = "" Then Exit Function
+    n = ReadRemarks(rd)
+    If n = 0 Then Exit Function
+    ReDim out(1 To n, 1 To R_COLS)
+    For i = 1 To n
+        If RemarkIsKey(rd, i, src, mainIO) And modTimeline.SameText(rd(i, R_REF), ref) Then
+            DeleteRemark = True
+        Else
+            nOut = nOut + 1
+            For j = 1 To R_COLS
+                out(nOut, j) = rd(i, j)
+            Next j
+        End If
+    Next i
+    If DeleteRemark Then
+        WriteRemarkRows out, nOut
+        SetNameText NAME_AT, Trim$(Str$(CDbl(Now)))
+    End If
+End Function
+
+'==============================================================================
+' Grid layout (ProjectionStore!M:T) and session state
 '==============================================================================
 Public Sub WriteLayout(ByRef lay() As Variant, ByVal nLay As Long, ByVal r0 As Long, _
-                       ByVal lastRow As Long, ByVal firstC As Long, ByVal lastC As Long)
+                       ByVal lastRow As Long, ByVal firstC As Long, ByVal lastC As Long, _
+                       ByVal remarkC As Long)
     Dim ws As Worksheet, last As Long, v() As Variant, i As Long, j As Long
     Set ws = ThisWorkbook.Worksheets(modTimeline.STORE_SHEET)
     last = ws.Cells(ws.Rows.Count, LAYOUT_COL).End(xlUp).Row
@@ -472,7 +661,7 @@ Public Sub WriteLayout(ByRef lay() As Variant, ByVal nLay As Long, ByVal r0 As L
         ws.Range(ws.Cells(2, LAYOUT_COL + 1), ws.Cells(nLay + 1, LAYOUT_COL + LAYOUT_COLS - 1)).NumberFormat = "@"
         ws.Range(ws.Cells(2, LAYOUT_COL), ws.Cells(nLay + 1, LAYOUT_COL + LAYOUT_COLS - 1)).Value = v
     End If
-    SetNameText NAME_SPAN, r0 & "|" & lastRow & "|" & firstC & "|" & lastC
+    SetNameText NAME_SPAN, r0 & "|" & lastRow & "|" & firstC & "|" & lastC & "|" & remarkC
 End Sub
 
 Private Function ReadLayout(ByRef lay As Variant) As Long
@@ -482,6 +671,18 @@ Private Function ReadLayout(ByRef lay As Variant) As Long
     If last < 2 Then Exit Function
     lay = ws.Range(ws.Cells(2, LAYOUT_COL), ws.Cells(last, LAYOUT_COL + LAYOUT_COLS - 1)).Value
     ReadLayout = last - 1
+End Function
+
+' Remark key of layout row i ("" for a layout written before remarks existed)
+Private Function LayRef(ByRef lay As Variant, ByVal i As Long) As String
+    If UBound(lay, 2) >= 8 Then LayRef = modTimeline.CleanText(lay(i, 8))
+End Function
+
+' Remarks column on Main_Dashboard (0 for a grid built before remarks existed)
+Private Function RemarkColumn() As Long
+    Dim parts As Variant
+    parts = Split(NameText(NAME_SPAN), "|")
+    If UBound(parts) >= 4 Then RemarkColumn = Val(parts(4))
 End Function
 
 Private Function LayoutIndexOfRow(ByRef lay As Variant, ByVal nLay As Long, ByVal r As Long) As Long
@@ -563,6 +764,11 @@ Public Sub SetSession(ByVal src As String, ByVal mainIO As String)
     End If
 End Sub
 
+' Makes IsDirty True until the next save or load.
+Public Sub MarkDirty()
+    SetNameText NAME_HASH, "changed"
+End Sub
+
 Public Function LoadedProject() As String
     LoadedProject = NameText(NAME_PROJECT)
 End Function
@@ -586,7 +792,7 @@ End Function
 
 Private Function HashInputs() As String
     Dim lay As Variant, nLay As Long, mCols() As Long, mDates() As Date, nM As Long
-    Dim ws As Worksheet, i As Long, c As Long, v As Variant, s As String
+    Dim ws As Worksheet, i As Long, c As Long, v As Variant, s As String, rc As Long
     nLay = ReadLayout(lay)
     nM = GridMonths(mCols, mDates)
     Set ws = modTimeline.DashSheet()
@@ -606,6 +812,17 @@ Private Function HashInputs() As String
             Next c
         End If
     Next i
+    rc = RemarkColumn()
+    If rc > 0 Then
+        For i = 1 To nLay
+            v = ws.Cells(CLng(lay(i, 1)), rc).Value2
+            If IsError(v) Then
+                s = s & "R" & lay(i, 1) & "=#;"
+            ElseIf Not IsEmpty(v) Then
+                s = s & "R" & lay(i, 1) & "=" & CStr(v) & ";"
+            End If
+        Next i
+    End If
     HashInputs = HashText(s)
 End Function
 

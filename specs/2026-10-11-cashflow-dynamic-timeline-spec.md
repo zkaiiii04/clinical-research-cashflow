@@ -1,8 +1,8 @@
 # Clinical Research Cash Flow — Dynamic Projection Timeline
 
-**Specification v1.0 — APPROVED by the user on 11 October 2026 (current revision v1.0.5). Built as v0.9_working; in UAT.**
+**Specification v1.0 — APPROVED by the user on 11 October 2026 (current revision v1.0.7). Built as v0.9_working; in UAT.**
 
-**Change log:** v1.0.5 (12 Oct 2026, user requests): (a) narrower Line column: the label is merged across B:C on each line row and wraps (≈40 characters), IO·Code moves to D and Budget to E, F:G are an empty spacer, and the months still start at H, so column widths and the rows above the grid are unchanged; (b) every build groups rows 2–19 (`TOP_FIRST_ROW`/`TOP_LAST_ROW` in `modTimeline`), collapsible with the +/− beside row 1, left expanded; the buttons move and size with their cells so they hide with the rows; (c) the macro doesn't set or clear frozen panes, so panes the user sets are kept. v1.0.4 (12 Oct 2026): the user moved the project selector from E6:G6 to E5:G5 in their working copy. The macros read the selector, notice, Calendar Basis and Last Refreshed cells from constants in `modTimeline` (`SEL_PROJECT`, `SEL_MAINIO`, `SEL_STATUS`, `NOTICE_CELL`, `BASIS_CELL`, `REFRESHED_CELL`). References to E6/F6/G6 in this spec mean those constants. v1.0.3 (11 Oct 2026, defect fix): the timeline's months and C7/C8 take Project Start/End from **`qProjects_SelectedTest`** (IREx project dates, IO Code Type "Main" row), not from `tblSelectedProjectMapping`, whose dates are the min/max of the SOA budget LOA dates. The mapping dates are only a fallback when the project dates are blank, and Load warns when the two differ (`docs/incidents/2026-10-11-v0.9-project-end-date.md`). Acceptance test 16 added. v1.0.2 (11 Oct 2026, incident fix): the v1.0.1 rename is reverted. The manpower table keeps its v0.8 name `qManpower_SelectedTest` on sheet `PQManpower_SelectedTest`, because renaming it by editing the file broke its query link (`docs/incidents/2026-10-11-v0.9-querytable9-repair.md`). It can be renamed later in the Excel UI; the VBA then needs its `MANPOWER_TABLE` constant changed. v1.0.1 (11 Oct 2026, build): the manpower table was renamed `tblManpowerSelectedTest` (user request). v1.0 approval; variance uses the standard number format with no colour coding by meaning. v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
+**Change log:** v1.0.7 (12 Oct 2026, user request, Stage 2): a **Remarks** column after Project Total on every line row. Remarks are saved per project by Save Projections and follow a line to its Unmatched row (§5.5, §8, §9, §13 test 18). v1.0.6 (12 Oct 2026): the user withdrew v1.0.5 (a), because they didn't want the empty F:G spacer. The Line column is back to B:E (IO·Code F, Budget G); (b) and (c) stay. v1.0.5 (12 Oct 2026, user requests): (a) narrower Line column, withdrawn in v1.0.6: the label is merged across B:C on each line row and wraps (≈40 characters), IO·Code moves to D and Budget to E, F:G are an empty spacer, and the months still start at H, so column widths and the rows above the grid are unchanged; (b) every build groups rows 2–19 (`TOP_FIRST_ROW`/`TOP_LAST_ROW` in `modTimeline`), collapsible with the +/− beside row 1, left expanded; the buttons move and size with their cells so they hide with the rows; (c) the macro doesn't set or clear frozen panes, so panes the user sets are kept. v1.0.4 (12 Oct 2026): the user moved the project selector from E6:G6 to E5:G5 in their working copy. The macros read the selector, notice, Calendar Basis and Last Refreshed cells from constants in `modTimeline` (`SEL_PROJECT`, `SEL_MAINIO`, `SEL_STATUS`, `NOTICE_CELL`, `BASIS_CELL`, `REFRESHED_CELL`). References to E6/F6/G6 in this spec mean those constants. v1.0.3 (11 Oct 2026, defect fix): the timeline's months and C7/C8 take Project Start/End from **`qProjects_SelectedTest`** (IREx project dates, IO Code Type "Main" row), not from `tblSelectedProjectMapping`, whose dates are the min/max of the SOA budget LOA dates. The mapping dates are only a fallback when the project dates are blank, and Load warns when the two differ (`docs/incidents/2026-10-11-v0.9-project-end-date.md`). Acceptance test 16 added. v1.0.2 (11 Oct 2026, incident fix): the v1.0.1 rename is reverted. The manpower table keeps its v0.8 name `qManpower_SelectedTest` on sheet `PQManpower_SelectedTest`, because renaming it by editing the file broke its query link (`docs/incidents/2026-10-11-v0.9-querytable9-repair.md`). It can be renamed later in the Excel UI; the VBA then needs its `MANPOWER_TABLE` constant changed. v1.0.1 (11 Oct 2026, build): the manpower table was renamed `tblManpowerSelectedTest` (user request). v1.0 approval; variance uses the standard number format with no colour coding by meaning. v0.2 merges Code into an IO · Code column (no space, merged across consecutive lines), adds `(Projected)` to manpower row labels, and records the accepted decisions in §14. Prototype: `prototypes/cashflow-timeline-prototype.html`.
 **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (not modified)
 **Build target:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.9_working.xlsm`
 **Source of decisions:** `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` (Q1–Q32)
@@ -63,10 +63,9 @@ Replace the fixed timeline on `Main_Dashboard` (G21:BO56: 60 pre-formatted colum
 ### 5.2 Columns
 
 ```
-| Line | IO · Code | Budget | (spacer) | <months + quarter totals …> | <FY/CY totals …> | Project Total |
+| Line | IO · Code | Budget | <months + quarter totals …> | <FY/CY totals …> | Project Total | Remarks |
 ```
 
-- **Placement (v1.0.5):** Line in B:C (merged on each line row, wrapped, row height fitted), IO·Code in D, Budget in E, an empty spacer in F:G, months from H. Columns B:G keep the widths the rows above the grid use. Months start at H so that collapsing a quarter never hides the selector or KPI cards.
 
 - **IO · Code:** one column holding the IO with its budget code joined on, **no space**, following the manpower IO convention: e.g. `TF25HIP136MP`, `TF25HIP136OM`, `TF25HIP136EQ`, `TR25NMR043AL`. Manpower lines show their manpower IO as it comes from the source (e.g. `TF25HIP136MP`). The cell is **merged vertically** across consecutive lines in a block that share the same value, so the IO isn't repeated on every line. In the MP block, budget lines (`TF25HIP136` + `MP`) and manpower lines (`TF25HIP136MP`) normally share one merged cell. The category name is shown on the block header row rather than in its own column.
 - **Months:** every month from the first month of Project Start to the month of Project End, using the project dates in `qProjects_SelectedTest` (the IO Code Type "Main" row for the Main IO, otherwise the first "Main" row). Only if those are blank does the build fall back to the Main IO row of `tblSelectedProjectMapping` (SOA budget LOA dates).
@@ -86,7 +85,7 @@ Replace the fixed timeline on `Main_Dashboard` (G21:BO56: 60 pre-formatted colum
   | Q4 | `#F8CBAD` | `#FCE4D6` |
 
 - **FY totals:** all FY total columns sit together at the far right, after the last quarter (`FY25 Total`, `FY26 Total`, …). On the Calendar Year basis they become `2025 Total`, `2026 Total`, … and use a neutral grey.
-- **Project Total:** the last column.
+- **Project Total:** the last figures column, followed by **Remarks** (§5.5).
 - There is **no Budget-remaining column**. The macro **doesn't set or clear frozen panes**; panes the user sets are kept (v1.0.5).
 - **Top rows (v1.0.5):** each build groups rows 2–19 (selector, KPI cards, buttons) so they collapse with the +/− beside row 1. They are left expanded after a build. The clear before a build removes the whole outline, which is why the macro puts the group back.
 
@@ -127,6 +126,15 @@ OTHER holds every Budget Code Type that isn't MP, OM, EQ or CO (currently AL, OT
 ### 5.4 Normalising descriptions
 
 The line key is the Budget Description with leading and trailing spaces removed, repeated internal spaces collapsed, non-printing characters removed, and converted to upper case. Budget records that share Project + IO + Category + line key are added together. The row displays the description text of the first record.
+
+### 5.5 Remarks column (v1.0.7)
+
+- One column straight after Project Total, headed **Remarks**, about 40 characters wide, wrapping.
+- **Every line row** has an unlocked (pale yellow) remark cell: typed budget lines, MP budget lines, manpower lines, Rate-not-found lines and Unmatched rows. Block headers and subtotal rows don't have one.
+- Remarks are text (one starting with `=` stays text). The column uses the standard font size, so rows keep their usual height and grow when a long remark wraps.
+- **Saved per project** by Save Projections and loaded back by Load Project (§8). An edited remark counts as an unsaved change (the switch-project prompt, §10.1).
+- **Line key** of a remark: budget lines use the line identity (Block | Code | IO | Line Key, §5.4). Manpower lines use `MPW|<Rate Category>|<IO>`, so changing the charge-to category keeps the remark. Rate-not-found lines use `RNF|<Staff Group>|<IO>`, the MP Unmatched manpower row uses `OOR|<Block>`, and Unmatched rows built from saved amounts use `UNM|<identity>`.
+- **Unmatched (§9):** if a remark's line is gone, the remark shows on that line's Unmatched row. If the line has no saved amounts, it gets an Unmatched row of its own, labelled "(… ; remark only)". Re-assign moves the remark to the target line, after any remark that line already has, and Delete removes it. If a remark had to move to a different row on Load, the grid counts as changed until it is saved.
 
 ## 6. Cell contents
 
@@ -182,6 +190,8 @@ Formulas only ever point at cells within the grid. **No SUMIFS or other referenc
 
 Each project is identified by the key **Source Project + Main IO**.
 
+**Remarks (v1.0.7)** are kept beside the table, in a plain range at `ProjectionStore!W:AD` with a header row: Source Project | Main IO | Line Ref (the remark key, §5.5) | Block | Description | Remark | Saved By | Saved At. `tblProjectionStore` itself is unchanged, and existing saved projections need no migration. The grid layout area that Load writes is now `M:T` (column T holds each row's remark key).
+
 Session state is kept in hidden defined names: the loaded project key, the time it was loaded, and the input values captured at load. The captured values are used to detect unsaved edits **without any sheet-change events**.
 
 ## 9. Unmatched saved projections
@@ -225,7 +235,10 @@ All macros go in new standard modules (`modTimeline`, `modStore`). The existing 
 1. Check that a project is loaded and that E6/F6 still match the loaded key. If they don't, stop: "Selection changed — reload first".
 2. **Conflict check:** if the latest Saved At for this key in the store is later than this session's load time, ask **"<Saved By> saved this project at <time> after you loaded it. Overwrite?"**
 3. Delete the store rows for this key, then write one row for every non-blank input cell, plus any unmatched rows that are still present.
-4. Update the session state.
+4. Replace this key's remarks with the non-blank Remarks cells (§5.5). Remarks for other projects are kept.
+5. Update the session state.
+
+The conflict check (step 2) also looks at the remarks' Saved At.
 
 ### 10.3 `ReassignUnmatched` / `DeleteUnmatched` (buttons)
 
@@ -287,8 +300,8 @@ All of this is done in `v0.9_working` only.
 | 14 | Mismatch guard | Change E6 without loading, then Save → blocked with "Selection changed — reload first" |
 | 15 | Cross-project | Switch to HoW2.0 - Esko Combo, which has AHS manpower lines and EQ/CO/OM budget lines → correct blocks and figures |
 | 16 | Project dates | Load tDCS (SOA budget LOA end 31 Dec 2026, IREx project end 30 Sep 2027) → timeline Jan 2025 – Sep 2027, C7/C8 = 1 Jan 2025 / 30 Sep 2027, no "manpower months outside project dates" row, MP Projected = sum of `qManpower_SelectedTest`, and a Load warning naming both date ranges |
-| 17 | Narrow Line column | Load any project → labels wrap within B:C, IO·Code in D, Budget in E, months from H; rows 1–19 and their column widths unchanged |
-| 18 | Top rows collapse | After Load, the − beside row 1 hides rows 2–19 (buttons hidden too, nothing floating over the grid); + shows them; still works after loading another project and under protection; frozen panes unchanged |
+| 17 | Top rows collapse | After Load, the − beside row 1 hides rows 2–19 (buttons hidden too, nothing floating over the grid); + shows them; still works after loading another project and under protection; frozen panes unchanged |
+| 18 | Remarks | Type a remark on a typed line and on a manpower line, Save, load another project, reload → both remarks back; edit a remark then switch project → "Save changes?" prompt; a remark on a line that leaves the budget shows on its Unmatched row and moves with Re-assign / goes with Delete |
 
 ## 14. Decisions made while writing the spec
 

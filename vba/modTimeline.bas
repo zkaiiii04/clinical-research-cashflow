@@ -35,18 +35,18 @@ Public Const REFRESHED_CELL As String = "C10" ' Last Refreshed
 Public Const TOP_FIRST_ROW As Long = 2
 Public Const TOP_LAST_ROW As Long = 19
 
-' Grid columns are offsets from TL_Anchor (B21). The Line label is merged
-' across B:C on each line row and wraps, IO-Code is in D and Budget in E.
-' F:G are an empty spacer: the collapsible month columns still start at H, so
-' collapsing a quarter never hides the selector (SEL_* cells) or the KPI cards
-' above the grid, and B:G keep the widths the top section uses.
-Private Const OFF_IO As Long = 2
-Private Const OFF_BUDGET As Long = 3
+' Grid columns are offsets from TL_Anchor (B21). The Line label sits in B and
+' overflows across C:E, so IO-Code is in F, Budget in G and the collapsible
+' month columns start at H. Collapsing a quarter therefore never hides the
+' selector (SEL_* cells) or the KPI cards above the grid.
+Private Const OFF_IO As Long = 4
+Private Const OFF_BUDGET As Long = 5
 Private Const OFF_FIRST As Long = 6
 
 Private Const FMT_MONEY As String = "#,##0;[Red](#,##0)"
 Private Const FMT_PCT As String = "0.0%;[Red](0.0%)"
 Private Const MAX_MONTHS As Long = 240
+Private Const REMARK_WIDTH As Double = 40   ' Remarks column after Project Total (wraps)
 
 Private Type TLine
     Kind As String          ' INPUT, BUDGET_MP, HIDDEN, MANPOWER, RNF, UNMATCHED, MP_OOR
@@ -67,6 +67,8 @@ Private Type TLine
     RnfRows As Long
     RnfFTE As Double
     Row As Long
+    RemarkRef As String     ' key of the line's saved remark (modStore remarks area)
+    Remark As String
 End Type
 
 Private L() As TLine
@@ -93,6 +95,7 @@ Private warnRNF As Long, warnAdmin As Long, warnUnmatched As Long, warnCharged A
 Private warnChargeBad As String
 Private dateNote As String          ' set by CheckTables: SOA LOA dates differ from the project dates
 Private storeRowsForKey As Long
+Private remarkMoved As Boolean      ' a saved remark is shown under a different key (Save re-keys it)
 
 Private mCalc As Long
 Private mScreen As Boolean
@@ -220,6 +223,7 @@ Public Function BuildGrid(ByVal isLoad As Boolean) As Boolean
     ReadManpower src, mainIO
     ReadActuals
     ReadStoreRows src, mainIO
+    ReadRemarkRows src, mainIO
     SortLines
 
     ' 5-7. Grid, saved projections, notice, session state
@@ -232,6 +236,9 @@ Public Function BuildGrid(ByVal isLoad As Boolean) As Boolean
         ws.Range(REFRESHED_CELL).NumberFormat = "dd mmm yyyy hh:mm"
     End If
     modStore.SetSession src, mainIO
+    ' A remark that moved to another row counts as an unsaved change, so the
+    ' next Save (or the save offered by Re-assign / Delete) stores it there
+    If remarkMoved Then modStore.MarkDirty
     ProtectDashboard
     EndWork
 
@@ -264,7 +271,7 @@ Private Sub ShowWarnings(ByVal dispName As String)
         "They are shown with no amount; check the rate grade in tbl_ManpowerRate." & vbCrLf
     If warnAdmin > 0 Then w = w & "- " & warnAdmin & " manpower line(s) use the Admin rate category, " & _
         "which isn't expected on the manpower sheets. They are shown and counted in MP." & vbCrLf
-    If warnUnmatched > 0 Then w = w & "- " & warnUnmatched & " unmatched saved projection line(s). " & _
+    If warnUnmatched > 0 Then w = w & "- " & warnUnmatched & " unmatched saved projection or remark line(s). " & _
         "They are counted in the totals; select one and use Re-assign or Delete." & vbCrLf
     If warnCharged > 0 Then w = w & "- " & warnCharged & " manpower line(s) are charged to another " & _
         "category (Dashboard_Settings)." & vbCrLf
@@ -526,6 +533,7 @@ Private Function AddLine(ByVal kind As String, ByVal blk As String, ByVal io As 
         .Desc = desc
         .Label = desc
         .Seq = nL
+        .RemarkRef = Identity(blk, code, io, lk)
     End With
     ReDim L(nL).Vals(1 To nMonths)
     AddLine = nL
@@ -643,6 +651,7 @@ Private Sub ReadManpower(ByVal src As String, ByVal mainIO As String)
                 idx = AddLine("RNF", "MP", UCase$(io), "MP", "", sg)
                 L(idx).Label = sg & " (Projected) " & ChrW(&H26A0) & " Rate not found"
                 L(idx).IOCode = io
+                L(idx).RemarkRef = key
                 mpIndex.Add key, idx
                 warnRNF = warnRNF + 1
             Else
@@ -655,6 +664,7 @@ Private Sub ReadManpower(ByVal src As String, ByVal mainIO As String)
                 End If
                 If cat = "ADMIN" Then warnAdmin = warnAdmin + 1
                 L(idx).IOCode = io
+                L(idx).RemarkRef = key
                 mpIndex.Add key, idx
             End If
 
@@ -685,6 +695,7 @@ Private Sub AddManpowerOutside(ByVal blk As String, ByVal lineLabel As String, _
     If idx = 0 Then
         idx = AddLine("MP_OOR", blk, "", "MP", "", "manpower months outside project dates")
         L(idx).Label = "Unmatched: manpower months outside project dates"
+        L(idx).RemarkRef = "OOR|" & blk
     End If
     L(idx).OORAmount = L(idx).OORAmount + amt
     L(idx).OORNote = L(idx).OORNote & vbLf & lineLabel & ", " & Format$(d, "mmm yy") & ": " & FmtMoney(amt)
@@ -791,6 +802,8 @@ Private Sub ReadStoreRows(ByVal src As String, ByVal mainIO As String)
                                        CleanText(data(i, modStore.S_DESC)))
                         L(uIdx).Label = "Unmatched: " & L(uIdx).Desc & " (" & reason & ")"
                         L(uIdx).IOCode = IOCodeText(io, code)
+                        ' Own remark key: the line itself may still be shown
+                        L(uIdx).RemarkRef = "UNM|" & key
                         orphans.Add key, uIdx
                         warnUnmatched = warnUnmatched + 1
                     End If
@@ -800,6 +813,87 @@ Private Sub ReadStoreRows(ByVal src As String, ByVal mainIO As String)
                         L(uIdx).OORAmount = L(uIdx).OORAmount + amt
                         L(uIdx).OORNote = L(uIdx).OORNote & vbLf & Format$(d, "mmm yy") & ": " & FmtMoney(amt)
                     End If
+                End If
+            End If
+        End If
+    Next i
+End Sub
+
+' Saved remarks for this project (spec 5.5). A remark shows on the line with
+' its key. If that line is gone, it follows the line to its Unmatched row,
+' or gets an Unmatched row of its own ("remark only"), so every saved remark
+' is on the grid and Save can replace the project's remarks as a whole.
+Private Sub ReadRemarkRows(ByVal src As String, ByVal mainIO As String)
+    Dim rd As Variant, n As Long, i As Long, idx As Long, refIndex As Object
+    Dim ref As String, stored As String, txt As String, key As String, parts As Variant
+    Dim blk As String, code As String, io As String, lk As String, desc As String, reason As String
+
+    remarkMoved = False
+    n = modStore.ReadRemarks(rd)
+    If n = 0 Then Exit Sub
+    Set refIndex = CreateObject("Scripting.Dictionary")
+    For i = 1 To nL
+        If L(i).Kind <> "HIDDEN" And Not refIndex.Exists(L(i).RemarkRef) Then refIndex.Add L(i).RemarkRef, i
+    Next i
+    For i = 1 To n
+        If modStore.RemarkIsKey(rd, i, src, mainIO) Then
+            ref = CleanText(rd(i, modStore.R_REF))
+            stored = ref
+            txt = ""
+            If Not IsError(rd(i, modStore.R_TEXT)) Then txt = CStr(rd(i, modStore.R_TEXT))
+            If ref <> "" And Trim$(txt) <> "" Then
+                idx = 0
+                If refIndex.Exists(ref) Then
+                    idx = refIndex(ref)
+                ElseIf Left$(ref, 4) = "UNM|" Then
+                    ' Its Unmatched row has gone; the line itself may be shown
+                    key = Mid$(ref, 5)
+                    If refIndex.Exists(key) Then idx = refIndex(key) Else ref = key
+                ElseIf refIndex.Exists("UNM|" & ref) Then
+                    ' The line is gone and its saved amounts are on an Unmatched row
+                    idx = refIndex("UNM|" & ref)
+                End If
+                If idx = 0 Then
+                    desc = CleanText(rd(i, modStore.R_DESC))
+                    blk = UCase$(CleanText(rd(i, modStore.R_BLOCK)))
+                    If BlockIndex(blk) = 5 Then blk = "OTHER"
+                    code = "": io = "": lk = ""
+                    parts = Split(ref & "|||", "|")
+                    Select Case parts(0)
+                        Case "MPW"
+                            idx = AddLine("UNMATCHED", blk, CStr(parts(2)), "MP", CStr(parts(1)), desc)
+                            L(idx).IOCode = CStr(parts(2))
+                            reason = "manpower line no longer in the source"
+                        Case "RNF"
+                            idx = AddLine("UNMATCHED", "MP", CStr(parts(2)), "MP", "", desc)
+                            L(idx).IOCode = CStr(parts(2))
+                            reason = "Rate-not-found row no longer in the source"
+                        Case "OOR"
+                            idx = AddLine("UNMATCHED", blk, "", "MP", "", desc)
+                            reason = "no manpower months outside the project dates now"
+                        Case Else
+                            If BlockIndex(CStr(parts(0))) < 5 Or parts(0) = "OTHER" Then blk = CStr(parts(0))
+                            code = CStr(parts(1)): io = CStr(parts(2)): lk = CStr(parts(3))
+                            idx = AddLine("UNMATCHED", blk, io, code, lk, desc)
+                            L(idx).IOCode = IOCodeText(io, code)
+                            If Not lineIndex.Exists(ref) Then
+                                reason = "no longer in budget"
+                            ElseIf L(lineIndex(ref)).Kind = "HIDDEN" Then
+                                reason = "line now nets to $0"
+                            Else
+                                reason = "line no longer shown"
+                            End If
+                    End Select
+                    L(idx).Label = "Unmatched: " & desc & " (" & reason & "; remark only)"
+                    L(idx).RemarkRef = ref
+                    refIndex.Add ref, idx
+                    warnUnmatched = warnUnmatched + 1
+                End If
+                If stored <> L(idx).RemarkRef Or L(idx).Remark <> "" Then remarkMoved = True
+                If L(idx).Remark = "" Then
+                    L(idx).Remark = txt
+                ElseIf InStr(1, L(idx).Remark, txt, vbBinaryCompare) = 0 Then
+                    L(idx).Remark = L(idx).Remark & " | " & txt
                 End If
             End If
         End If
@@ -973,8 +1067,8 @@ Private Sub WriteGrid(ByVal ws As Worksheet, ByVal src As String, ByVal mainIO A
             .VerticalAlignment = xlCenter
         End With
     Next it
-    FitLabels ws, c0, lastC, shown, lf, ll
     WriteNotes ws, firstC, shown, rA, rP
+    WriteRemarks ws, r0, c0, lastC, lastRow, shown, hdrRow, rP, rVP
 
     ' Outline: each quarter's months collapse into its total (summary on the right)
     ws.Outline.SummaryColumn = xlSummaryOnRight
@@ -995,7 +1089,7 @@ Private Sub WriteGrid(ByVal ws As Worksheet, ByVal src As String, ByVal mainIO A
         RefersTo:="='" & DASH_SHEET & "'!" & ws.Cells(rP(6), firstC + pCol - 1).Address
 
     ' Layout map for Save / Re-assign / Delete
-    ReDim lay(1 To IIf(nOrd > 0, nOrd, 1), 1 To 7)
+    ReDim lay(1 To IIf(nOrd > 0, nOrd, 1), 1 To 8)
     nLay = 0
     For i = 1 To nOrd
         k = ord(i)
@@ -1007,8 +1101,9 @@ Private Sub WriteGrid(ByVal ws As Worksheet, ByVal src As String, ByVal mainIO A
         lay(nLay, 5) = L(k).Code
         lay(nLay, 6) = L(k).LineKey
         lay(nLay, 7) = L(k).Desc
+        lay(nLay, 8) = L(k).RemarkRef
     Next i
-    modStore.WriteLayout lay, nLay, r0, lastRow + 2, firstC, lastC
+    modStore.WriteLayout lay, nLay, r0, lastRow + 2, firstC, lastC, lastC + 1
 End Sub
 
 Private Sub PutV(ByRef arr() As Variant, ByVal r0 As Long, ByVal c0 As Long, _
@@ -1244,7 +1339,7 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
         .HorizontalAlignment = xlCenter
         .VerticalAlignment = xlCenter
     End With
-    ws.Range(ws.Cells(r0, c0), ws.Cells(r0 + 1, firstC - 1)).Interior.Color = HexColor("EEF2F0")
+    ws.Range(ws.Cells(r0, c0), ws.Cells(r0 + 1, c0 + OFF_BUDGET)).Interior.Color = HexColor("EEF2F0")
     ws.Cells(r0, c0).HorizontalAlignment = xlLeft
     ws.Cells(r0 + 1, c0).HorizontalAlignment = xlLeft
     ws.Range(ws.Cells(r0 + 1, firstC), ws.Cells(r0 + 1, lastC)).NumberFormat = "mmm yy"
@@ -1256,9 +1351,6 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_BUDGET), ws.Cells(lastRow, lastC)).NumberFormat = FMT_MONEY
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_IO), ws.Cells(lastRow, c0 + OFF_IO)).Font.Size = 9
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_IO), ws.Cells(lastRow, c0 + OFF_IO)).Font.Color = HexColor("4B5A54")
-    ws.Range(ws.Cells(r0 + 2, c0 + OFF_IO), ws.Cells(lastRow, c0 + OFF_IO)).ShrinkToFit = True
-    ' Wrapped labels make some rows taller; keep each row's cells on one line
-    ws.Range(ws.Cells(r0 + 2, c0), ws.Cells(lastRow, lastC)).VerticalAlignment = xlCenter
 
     ' Line rows
     For i = 1 To nOrd
@@ -1314,7 +1406,7 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
     End With
     ws.Range(ws.Cells(rVP(6), c0 + OFF_BUDGET), ws.Cells(rVP(6), lastC)).NumberFormat = FMT_PCT
 
-    ' Light grid lines; vertical lines from IO-Code onwards, none in the F:G spacer
+    ' Light grid lines; no vertical lines inside B:E so the Line text reads as one column
     With grid.Borders(xlInsideHorizontal)
         .LineStyle = xlContinuous
         .Color = HexColor("D5DDD9")
@@ -1328,48 +1420,6 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
         .LineStyle = xlContinuous
         .Color = HexColor("A9B6B0")
     End With
-    If firstC - 1 > c0 + OFF_BUDGET + 1 Then
-        ws.Range(ws.Cells(r0, c0 + OFF_BUDGET + 1), ws.Cells(lastRow, firstC - 1)).Borders(xlInsideVertical).LineStyle = xlNone
-    End If
-End Sub
-
-' Line labels: merged across B:C on each line row and wrapped. Excel can't
-' autofit the height of a merged cell, so the labels are copied to a helper
-' column of the same width past the grid, the rows are autofitted there, and
-' the helper is cleared. Rows are never made shorter than the standard height.
-Private Sub FitLabels(ByVal ws As Worksheet, ByVal c0 As Long, ByVal lastC As Long, _
-                      ByRef shown() As Boolean, ByRef lf() As Long, ByRef ll() As Long)
-    Dim b As Long, c As Long, r As Long, hc As Long, w As Double, oldW As Double, used As Range
-    hc = lastC + 2
-    oldW = ws.Columns(hc).ColumnWidth
-    For c = c0 To c0 + OFF_IO - 1
-        w = w + ws.Columns(c).ColumnWidth
-    Next c
-    If w > 255 Then w = 255
-    ws.Columns(hc).ColumnWidth = w
-    For b = 1 To 5
-        If shown(b) And ll(b) >= lf(b) Then
-            With ws.Range(ws.Cells(lf(b), hc), ws.Cells(ll(b), hc))
-                .NumberFormat = "@"
-                .Font.Size = 10
-                .WrapText = True
-                .Value = ws.Range(ws.Cells(lf(b), c0), ws.Cells(ll(b), c0)).Value
-                If used Is Nothing Then Set used = .Cells Else Set used = Union(used, .Cells)
-            End With
-            With ws.Range(ws.Cells(lf(b), c0), ws.Cells(ll(b), c0 + OFF_IO - 1))
-                .Merge Across:=True
-                .WrapText = True
-                .HorizontalAlignment = xlLeft
-                .VerticalAlignment = xlCenter
-            End With
-            ws.Range(ws.Rows(lf(b)), ws.Rows(ll(b))).AutoFit
-            For r = lf(b) To ll(b)
-                If ws.Rows(r).RowHeight < ws.StandardHeight Then ws.Rows(r).RowHeight = ws.StandardHeight
-            Next r
-        End If
-    Next b
-    If Not used Is Nothing Then used.Clear
-    ws.Columns(hc).ColumnWidth = oldW
 End Sub
 
 ' Rows TOP_FIRST_ROW:TOP_LAST_ROW (selector, KPI cards, buttons) are grouped so
@@ -1385,6 +1435,57 @@ Private Sub GroupTopRows(ByVal ws As Worksheet)
     For Each shp In ws.Shapes
         If Left$(shp.Name, 6) = "btnTL_" Then shp.Placement = xlMoveAndSize
     Next shp
+End Sub
+
+' Remarks column straight after Project Total (spec 5.5). Every line row gets
+' an unlocked, wrapped cell; block headers and subtotal rows take the row's
+' band colour. The column uses the standard font size, so after the row
+' autofit below rows keep their usual height and grow when a long remark is
+' typed. Remarks are written as text, so one starting with "=" stays text.
+Private Sub WriteRemarks(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long, ByVal lastC As Long, _
+        ByVal lastRow As Long, ByRef shown() As Boolean, ByRef hdrRow() As Long, _
+        ByRef rP() As Long, ByRef rVP() As Long)
+    Dim rc As Long, i As Long, k As Long, b As Long, col As Range, cell As Range
+    rc = lastC + 1
+    Set col = ws.Range(ws.Cells(r0, rc), ws.Cells(lastRow, rc))
+    ws.Columns(rc).ColumnWidth = REMARK_WIDTH
+    With col
+        .NumberFormat = "@"
+        .Font.Size = Application.StandardFontSize
+        .WrapText = True
+        .HorizontalAlignment = xlLeft
+        .VerticalAlignment = xlTop
+        .Interior.Color = HexColor("EEF2F0")
+    End With
+    With ws.Range(ws.Cells(r0, rc), ws.Cells(r0 + 1, rc))
+        .Font.Bold = True
+        .VerticalAlignment = xlCenter
+    End With
+    ws.Cells(r0 + 1, rc).Value = "Remarks"
+    For i = 1 To nOrd
+        k = ord(i)
+        Set cell = ws.Cells(L(k).Row, rc)
+        cell.Interior.Color = HexColor("FFFFE0")
+        cell.Locked = False
+        If L(k).Kind = "UNMATCHED" Or L(k).Kind = "MP_OOR" Then cell.Font.Italic = True
+        If L(k).Remark <> "" Then cell.Value = L(k).Remark
+    Next i
+    For b = 1 To 5
+        If shown(b) Then
+            ws.Cells(hdrRow(b), rc).Interior.Color = HexColor("D8ECE8")
+            ws.Range(ws.Cells(rP(b), rc), ws.Cells(rVP(b), rc)).Interior.Color = HexColor("F2F5F4")
+            ws.Cells(rP(b), rc).Borders(xlEdgeTop).Weight = xlMedium
+        End If
+    Next b
+    With ws.Range(ws.Cells(rP(6), rc), ws.Cells(rVP(6), rc))
+        .Interior.Color = HexColor("17211D")
+    End With
+    With col.Borders(xlInsideHorizontal)
+        .LineStyle = xlContinuous
+        .Color = HexColor("D5DDD9")
+    End With
+    col.BorderAround xlContinuous, xlThin, , HexColor("A9B6B0")
+    ws.Range(ws.Rows(r0 + 2), ws.Rows(lastRow)).AutoFit
 End Sub
 
 Private Function MonthCells(ByVal ws As Worksheet, ByVal r As Long, ByVal firstC As Long) As Range

@@ -77,6 +77,7 @@ Read only what the task needs; don't scan the whole repo.
 - Commit to the session's branch, open a pull request and merge it into `main` when the user has asked for changes to be kept. Don't commit workbooks or SharePoint URLs.
 - Log every defect or incident in `docs/incidents/` (symptom, evidence, root cause, fix, prevention).
 - **End of every session: write a new handover** `handovers/YYYY-MM-DD-<topic>.md` from the template in `handovers/README.md`, add it to the index as LATEST, and update this file's Current state and directory. Don't rewrite old handovers.
+- **Whenever a handover is asked for, first update every document the session's changes touch.** Check each file in the directory above against what changed, including the spec, PRD (bump the version and add a change-log row), technical spec, `docs/PROJECT_REFERENCE.md`, build log, UAT script, install guide (md, then regenerate the docx with pandoc), brainstorm log, incidents and release zip. Say which docs were updated and which were checked and needed nothing.
 - When adding a file to the repo, add it to the directory table above.
 - Keep this file under 200 lines. Put detail in `docs/PROJECT_REFERENCE.md` or the spec.
 - The user works partly on a phone. Keep replies short, and use numbered options when asking (answers often come as "a1, b1").

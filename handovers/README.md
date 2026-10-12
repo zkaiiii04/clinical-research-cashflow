@@ -11,8 +11,9 @@ One handover document per working session, newest first. **Read only the latest 
 ## Routine (every session)
 
 1. **Start:** read `CLAUDE.md`, then the latest handover here, then only the files the task needs (`CLAUDE.md` lists every file and when to read it).
-2. **End:** write a **new** file `handovers/YYYY-MM-DD-<short-topic>.md` from the template below. Add it at the top of the table above, mark it **LATEST**, and remove LATEST from the previous one. Don't rewrite earlier handovers.
-3. Also update `CLAUDE.md` "Current state" (3–6 lines) and the build log if anything was built or changed.
+2. **Before the handover:** update every document the session's changes touch (rule in `CLAUDE.md`). Go through the directory table, and list in the handover's "Files touched" which docs were updated.
+3. **End:** write a **new** file `handovers/YYYY-MM-DD-<short-topic>.md` from the template below. Add it at the top of the table above, mark it **LATEST**, and remove LATEST from the previous one. Don't rewrite earlier handovers.
+4. Also update `CLAUDE.md` "Current state" (3–6 lines) and the build log if anything was built or changed.
 
 ## Template
 

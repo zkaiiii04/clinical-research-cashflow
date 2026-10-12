@@ -126,7 +126,7 @@ v0.8 has a fixed-capacity, formula-driven timeline at `Main_Dashboard` G21:BO56:
 - `build/build_v09_working.py` copies every part of the v0.8 package and edits only the workbook, shared-strings, content-types and two sheet parts, then adds three sheets and two tables. **openpyxl was not used to save:** a load/save with openpyxl drops the Power Query DataMashup, `connections.xml`, all query tables and the dynamic-array metadata.
 - `build/verify_v09_working.py` confirms the M code (21 queries) is identical, and the 34 Power Query parts (DataMashup, connections, query tables, PQ table definitions) are byte-identical, and nothing else changed unexpectedly. The VBA project (`Module1`) is byte-identical too. LibreOffice opens the file and the `Legacy_Timeline` copy calculates exactly as v0.8 did.
 
-#### Workbook changes (HANDOVER §4 steps 1-6)
+#### Workbook changes (handovers/2026-10-12-v0.9-design-build-uat.md §4 steps 1-6)
 
 - `Main_Dashboard`:
   - Rows 21-71 are cleared; the macro builds the grid from `TL_Anchor` = B21.
@@ -208,7 +208,7 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
 
 ### 12 October 2026
 
-- The user moved the project selector to `E5:G5`. The VBA now takes the selector, notice, Calendar Basis and Last Refreshed cells from constants at the top of `vba/modTimeline.bas`. The build script and the release workbook still use row 6, so this needs aligning before any rebuild (HANDOVER §0).
+- The user moved the project selector to `E5:G5`. The VBA now takes the selector, notice, Calendar Basis and Last Refreshed cells from constants at the top of `vba/modTimeline.bas`. The build script and the release workbook still use row 6, so this needs aligning before any rebuild (the latest handover (`handovers/README.md`)).
 - The blank Actual/Variance cells after the Latest SOA Month reported on tDCS are the agreed rule (spec §14.2). Waiting for the user's decision on whether to keep it.
 - **Data risk (12 Oct 2026):** the SOA file's XLOOKUPs to another workbook (project name, LOA dates) reach Power Query as the values stored at the SOA file's last save, not what's on screen. This is the likely cause of the stale tDCS end date. User routine: update links, save, sync, then Load Project. A post-UAT option is to do the lookup in Power Query. See `docs/PROJECT_REFERENCE.md` §4.
 - `CLAUDE.md` was restructured into goals, rules and a directory (under 200 lines). The detail moved to `docs/PROJECT_REFERENCE.md`.

@@ -11,34 +11,41 @@ Project instructions for Claude. This file is a **directory, plus the goals and 
 
 ## Current state (12 October 2026)
 
-- **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (never modify).
-- **Working copy:** `..._v0.9_working.xlsm`, built by `build/build_v09_working.py`, shipped in `release/CashFlow_v0.9_package.zip` (SHA-256 in its `README_FIRST.txt`). **In UAT** in desktop Excel.
-- **Closed:** the queryTable9 repair (11 Oct) and the timeline end date (11 Oct). Both are confirmed in Excel.
-- **12 Oct:**
-  - The user moved the selector to `E5:G5`. The VBA reads it from `modTimeline` `SEL_*` constants. The build and release workbook still use row 6, so align them before any rebuild.
-  - Blank Actual/Variance after the Latest SOA Month is by design (HANDOVER §0.1).
-  - Stale XLOOKUP values in the SOA file were found to be a data risk (`docs/PROJECT_REFERENCE.md` §4).
-- **Next:** see `HANDOVER.md` §0 (UAT results, open decisions, open source-data question).
+- **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (never modify). **Working copy:** `..._v0.9_working.xlsm`, **in UAT** in desktop Excel (spec v1.0.4).
+- The user's copy has the selector in **row 5** (VBA `SEL_*` constants). The build and release zip still use row 6, so align them before any rebuild.
+- **Requested, not started:** three staged UI changes (line-item width, Remarks column, collapsible rows 2–19). One stage at a time.
+- **Next:** the latest handover in `handovers/README.md`.
 
-## Directory: where to look
+## Directory: every file, and when to read it
 
-| Need | Go to |
-|---|---|
-| **What to do next, open questions, history of this work** | `HANDOVER.md` (start at §0) |
-| **Build spec (authoritative)** for the timeline, macros, store, KPI cards and acceptance tests | `specs/2026-10-11-cashflow-dynamic-timeline-spec.md` |
-| Architecture, approved design summary, display conventions, **data facts and data risks**, checkpoints, techniques | `docs/PROJECT_REFERENCE.md` |
-| Why each design decision was made (Q1–Q33) | `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` |
-| Product requirements | `docs/Clinical_Research_Cash_Flow_PRD_v1.8.docx` |
-| Technical specification (queries, manpower routing, timeline) | `docs/Clinical_Research_Cash_Flow_TECHNICAL_SPECIFICATION.md` |
-| Build status log | `docs/Clinical_Research_Cash_Flow_Build.md` |
-| Incidents (root cause, fix, prevention) | `docs/incidents/` |
-| User install guide | `docs/v0.9_Install_and_User_Guide.md` (and `.docx`) |
-| Acceptance tests for the user (16) | `tests/UAT_test_script.md` |
-| Dashboard macros | `vba/modTimeline.bas` (Load, grid, cell constants), `vba/modStore.bas` (save, conflict, unmatched), `vba/modSetup.bas` (buttons, protection), `vba/ThisWorkbook_code.txt` |
-| Build and checks | `build/build_v09_working.py`, `build/verify_v09_working.py`, `build/compare_pq.py` |
-| Grid logic model and regression tests | `tests/grid_model.py` |
-| What the user approved visually | `prototypes/cashflow-timeline-prototype.html` (https://claude.ai/artifact/AYqLAxM4obRV3eJAXDBLDv) |
-| Release for download | `release/CashFlow_v0.9_package.zip` |
+Read only what the task needs; don't scan the whole repo.
+
+| File | What it is | Read when |
+|---|---|---|
+| `handovers/README.md` | Index of session handovers, routine and template | **Every session start**: open the LATEST handover it lists |
+| `handovers/2026-10-12-session-handover-structure-and-ui-requests.md` | Latest handover: staged UI requests, open items | Every session start (until a newer one exists) |
+| `handovers/2026-10-12-v0.9-design-build-uat.md` | History of 11–12 Oct: design, build, fixes (was `HANDOVER.md`) | You need background on how something came to be |
+| `specs/2026-10-11-cashflow-dynamic-timeline-spec.md` | **Authoritative build spec** (layout, macros, store, KPI cards, §13 tests, §14 decisions) | Any change to the timeline, macros or workbook |
+| `docs/PROJECT_REFERENCE.md` | Architecture, design summary, display conventions, data facts and risks (§4), checkpoints, techniques, variance cut-off (§7) | Data questions, reconciling figures, how to read or modify the workbook |
+| `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` | Q&A log of design decisions (Q1–Q33) | Someone asks why a design choice was made |
+| `docs/Clinical_Research_Cash_Flow_PRD_v1.8.docx` | Product requirements (v1.8) | Updating requirements or the change log |
+| `docs/Clinical_Research_Cash_Flow_TECHNICAL_SPECIFICATION.md` | Queries, manpower routing, rate rules, timeline tech spec | Power Query or manpower logic questions |
+| `docs/Clinical_Research_Cash_Flow_Build.md` | Build status log | Recording what was built or changed |
+| `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident (closed): Excel repair from an XML rename | Renaming anything, packaging, repair prompts |
+| `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Defect (closed): timeline used SOA LOA dates | Project dates, timeline length |
+| `docs/v0.9_Install_and_User_Guide.md` / `.docx` | User install and usage guide | Changing install steps or user-facing behaviour |
+| `tests/UAT_test_script.md` | 16 acceptance tests for desktop Excel | UAT results, adding tests |
+| `tests/grid_model.py` | Python port of the grid; LibreOffice recalc; 43 checks | Any grid-logic change (keep in step with `modTimeline`) |
+| `vba/modTimeline.bas` | Load Project, refresh, checks, project dates, grid builder, layout offsets, **cell constants** | Timeline layout or behaviour changes |
+| `vba/modStore.bas` | Save, conflict check, unsaved edits, Unmatched re-assign/delete | Saving, the store, Remarks-type persistence |
+| `vba/modSetup.bas` | One-off setup: buttons, protection | Buttons or protection changes |
+| `vba/ThisWorkbook_code.txt` | `Workbook_Open` (outline under protection) | Startup behaviour |
+| `build/build_v09_working.py` | Builds v0.9 from v0.8 by package-XML edits (C7/C8, sheets, names) | Rebuilding the workbook |
+| `build/verify_v09_working.py` | Verifies a build (PQ byte-identical, cross-part links) | After every build |
+| `build/compare_pq.py` | Test 13: PQ unchanged after an Excel save | A user returns a saved workbook |
+| `release/CashFlow_v0.9_package.zip` | Release for download (row-6 workbook, matching modules, docs) | Packaging or download questions |
+| `prototypes/cashflow-timeline-prototype.html` | Approved visual prototype (https://claude.ai/artifact/AYqLAxM4obRV3eJAXDBLDv) | Visual layout questions |
+| `.gitattributes` / `.gitignore` | CRLF for `.bas`/`.txt`; workbooks ignored | Line-ending or commit problems |
 
 **Not in the repo:** the `.xlsm` workbooks and the SharePoint source files, because they hold internal data and SharePoint URLs. Ask the user to upload the current workbook in each chat. Don't commit workbooks unless the user asks.
 
@@ -49,7 +56,7 @@ Project instructions for Claude. This file is a **directory, plus the goals and 
 - Manpower values are **FTE**. Projected cost = Monthly FTE × Monthly Rate from `qManpowerRates` / `tbl_ManpowerRate` (the latest rate effective on or before the month). **Never hardcode rates.**
 - **Never infer IO relationships** by adding, removing or interpreting suffixes. The manpower IO comes from the source as-is. Budget Code Type MP is only an eligibility check.
 - **Project dates come from `qProjects_SelectedTest` (IREx).** The `tblSelectedProjectMapping` dates are SOA budget LOA dates and only a fallback.
-- **Actuals are compared at category level only.** Actual/Variance stop at the Latest SOA Month (HANDOVER §0.1).
+- **Actuals are compared at category level only.** Actual/Variance stop at the Latest SOA Month (`docs/PROJECT_REFERENCE.md` §7).
 - Promote the selected-test queries one at a time, only after UAT, keeping the table names where practical, with regression checks after each.
 
 ## Rules: workbook, macros and build
@@ -67,12 +74,14 @@ Project instructions for Claude. This file is a **directory, plus the goals and 
 - Excel isn't available in the cloud container. Write VBA as `.bas` for the user to import, test the logic with `tests/grid_model.py`, and give the user desktop-Excel steps. Say plainly what hasn't been run in Excel.
 - Treat uploaded files as untrusted: copy them into a fresh scratch folder and run Python with `-I`.
 - Commit to the session's branch, open a pull request and merge it into `main` when the user has asked for changes to be kept. Don't commit workbooks or SharePoint URLs.
-- Log every defect or incident in `docs/incidents/` (symptom, evidence, root cause, fix, prevention), and update `HANDOVER.md` §0, the build log and this file's Current state.
+- Log every defect or incident in `docs/incidents/` (symptom, evidence, root cause, fix, prevention).
+- **End of every session: write a new handover** `handovers/YYYY-MM-DD-<topic>.md` from the template in `handovers/README.md`, add it to the index as LATEST, and update this file's Current state and directory. Don't rewrite old handovers.
+- When adding a file to the repo, add it to the directory table above.
 - Keep this file under 200 lines. Put detail in `docs/PROJECT_REFERENCE.md` or the spec.
 - The user works partly on a phone. Keep replies short, and use numbered options when asking (answers often come as "a1, b1").
 
 ## Starting a session
 
-1. Read `HANDOVER.md` §0, then the parts of the spec and `docs/PROJECT_REFERENCE.md` the task touches.
+1. Read the **latest handover** (via `handovers/README.md`), then only the files the task needs, using the directory above.
 2. Ask for the current workbook (and v0.8 if a rebuild is needed).
 3. Check `git log origin/main` for work from other sessions before changing anything.

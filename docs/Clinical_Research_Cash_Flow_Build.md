@@ -205,3 +205,8 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
   - The user traced the stale end date to a source-file column Power Query reads.
   - **Confirmed fixed by the user in desktop Excel (11 Oct 2026).** The queryTable9 incident is closed too: the rebuilt copy opens and loads cleanly.
 - **Update (11 Oct 2026):** PRD is now v1.8 (`docs/Clinical_Research_Cash_Flow_PRD_v1.8.docx`): v0.9 build, both fixes confirmed, UAT next.
+
+### 12 October 2026
+
+- The user moved the project selector to `E5:G5`. The VBA now takes the selector, notice, Calendar Basis and Last Refreshed cells from constants at the top of `vba/modTimeline.bas`. The build script and the release workbook still use row 6, so this needs aligning before any rebuild (HANDOVER §0).
+- The blank Actual/Variance cells after the Latest SOA Month reported on tDCS are the agreed rule (spec §14.2). Waiting for the user's decision on whether to keep it.

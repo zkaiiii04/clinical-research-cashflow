@@ -44,7 +44,7 @@ An Excel workbook (`.xlsm`) that gives project-level cash-flow visibility for cl
 
 - **Sources (read-only):** the SOA file (`tblCollation_Budget`, `tblCollation_SOA`) and the IREx file (`DB_RA_Distrib`, `DB_AHS_Nurse_Distrib`, `tbl_ManpowerRate`), reached through SharePoint with Organizational Account authentication. The `Config` sheet holds the site, folder and file names.
 - **Original loaded outputs, still active:** `qBudget`→`tblBudget`, `qActuals`→`tblActuals`, `qProjects`→`tblProjects`, `qManpower`→`tblManpower`.
-- **Selection:** `Main_Dashboard!E6` Source Project, `F6` Main IO, `G6` Setup Status. These flow through `Lists!N3:P4` `tblProjectSelection` into Power Query.
+- **Selection:** Source Project, Main IO and Setup Status. These flow through `Lists!N3:P4` `tblProjectSelection` into Power Query. **The user moved them from `E6:G6` to `E5:G5` in their working copy on 12 Oct 2026.** The VBA reads the cells from constants in `modTimeline` (`SEL_PROJECT`, `SEL_MAINIO`, `SEL_STATUS`, plus `NOTICE_CELL` E7, `BASIS_CELL` C6, `REFRESHED_CELL` C10). The build script and the release workbook still have the selector in row 6, so a rebuild must move it, or the constants must be set back.
 - **Catalogue / mapping:** `qProjectIOCatalogue`→`tblProjectIOCatalogue` (grain: Source Project + IO + Budget Code Type), and `qSelectedProjectMapping`→`tblSelectedProjectMapping`.
 - **Selected-test outputs (passed, used by the new dashboard):**
   - `tblBudgetSelectedTest` (sheet `PQ_Budget_SelectedTest`)

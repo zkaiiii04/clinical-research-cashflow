@@ -6,7 +6,8 @@ Attribute VB_Name = "modSetup"
 '   1. checks that the sheets, tables and names the timeline needs exist;
 '   2. adds the four buttons beside the selector (E8:F11): Load Project,
 '      Save Projections, Re-assign unmatched, Delete unmatched;
-'   3. unlocks C6, E6 and F6 and protects Main_Dashboard (no password) with
+'   3. unlocks the Calendar Basis and selector cells (modTimeline BASIS_CELL,
+'      SEL_PROJECT, SEL_MAINIO) and protects Main_Dashboard (no password) with
 '      outlining enabled.
 ' It is safe to run again; it replaces its own buttons. It does not touch
 ' queries, connections or loaded tables.
@@ -45,7 +46,8 @@ Public Sub Setup_Dashboard_v09()
     modTimeline.ProtectDashboard
 
     MsgBox "Setup complete." & vbCrLf & vbCrLf & _
-           "Save the workbook now (keep the .xlsm format), then choose a project in E6/F6 " & _
+           "Save the workbook now (keep the .xlsm format), then choose a project in " & _
+           modTimeline.SEL_PROJECT & "/" & modTimeline.SEL_MAINIO & " " & _
            "and click Load Project.", vbInformation, "Setup"
 End Sub
 

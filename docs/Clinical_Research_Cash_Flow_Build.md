@@ -221,3 +221,4 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
   - remarks follow a line to its Unmatched row, and Re-assign/Delete move or remove them;
   - edited remarks count as unsaved changes.
   - Grid model: 44 checks PASS (Remarks header added). Not yet run in Excel; UAT 18.
+- **12 Oct 2026: the user tested the row group and the Remarks macros in desktop Excel and reported no issues (UAT 17–18 pass).** The install guide (md and docx) now covers Remarks and the top-row collapse.

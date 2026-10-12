@@ -1,6 +1,6 @@
 # Session handover: 12 Oct 2026 (Stage 1 tried and withdrawn; rows 2–19 grouped; Remarks column)
 
-**Status in one line:** `vba/modTimeline.bas` + `vba/modStore.bas` now group rows 2–19 on every build and add a saved **Remarks** column after Project Total (spec v1.0.7). The grid model passes, but it hasn't been run in Excel; waiting on the user's UAT 17–18. Stage 1 (narrower Line column) was built, then withdrawn by the user.
+**Status in one line:** `vba/modTimeline.bas` + `vba/modStore.bas` now group rows 2–19 on every build and add a saved **Remarks** column after Project Total (spec v1.0.7). The user tested the new macros in desktop Excel and reported **no issues** (UAT 17–18 pass, PR #16). Stage 1 (narrower Line column) was built, then withdrawn by the user.
 
 ## What was done this session
 - **Stage 1, narrower Line column (PR #14, then reverted):**
@@ -32,11 +32,11 @@
 - Remarks: a1 every line row; b1 saved per project; c1 follows the line to Unmatched and moves with Re-assign/Delete; d1 about 40 characters wrapped; placed after Project Total.
 
 ## Open items / waiting on the user
-- **Test in Excel:** import `modTimeline.bas` **and** `modStore.bas` (VBE: remove both, File → Import). Debug → Compile, Load a project, then UAT 17–18. → user
+- ~~Test in Excel~~: **done.** The user reported no issues with the new macros (UAT 17–18).
 - Line-item width (Stage 1) is parked. Revisit only if the user raises it again (F:G options above).
 - In the MP block a remark-only Unmatched row can't be re-assigned, only deleted, because Re-assign needs a typed line and MP has none. This is documented in spec §5.5. Change it only if the user asks.
 - Any shapes in rows 2–19 other than `btnTL_*` keep their own placement and may float over the grid when collapsed. → ask if seen
-- `docs/v0.9_Install_and_User_Guide.md` / `.docx` don't describe Remarks or the row group yet. Update after UAT 17–18 pass.
+- ~~Install guide~~: **done.** `docs/v0.9_Install_and_User_Guide.md` describes Remarks, the top-row collapse and tests 1–18; the `.docx` was regenerated with pandoc, using the old docx as the reference doc.
 - Carried forward:
   - UAT 1–16 results;
   - future Actual shown as 0 vs blank;
@@ -46,8 +46,8 @@
   - promotion after UAT.
 
 ## Next session: do this first
-1. Ask for the UAT 17–18 results, with screenshots of the Remarks column and of a collapsed top section if anything looks off.
-2. Fix anything found. Then update the install guide and pick up the carried-forward items.
+1. Pick up the carried-forward items: UAT 1–16 results; the future-Actual decision; the tDCS OT vs RA check.
+2. Before any rebuild or release, align the build and release zip with the user's row-5 layout and the current modules (needs the user's workbook).
 
 ## Files touched
 - `vba/modTimeline.bas`: `TOP_*`, `GroupTopRows`, `REMARK_WIDTH`, `TLine.RemarkRef/Remark`, `ReadRemarkRows`, `WriteRemarks`, layout column 8, `MarkDirty` call.

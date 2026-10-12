@@ -290,7 +290,7 @@ All of this is done in `v0.9_working` only.
 The user accepted the recommendations for items 1 and 2 ('noted on the 2 decisions'):
 
 1. **Actuals posted outside the project dates** (e.g. a late posting after Project End). *Decided:* count them in the category's Project Total, and in the FY total if that FY column exists, with a cell note, the same way unmatched projections are handled.
-2. **Monthly variance for months with no SOA yet** (after the Latest SOA Month). *Decided:* show Variance ($) and (%) only for months up to the Latest SOA Month, and leave later months blank. Quarter, FY and Project Total variances then compare actuals with projections **up to the Latest SOA Month only**, so a future plan isn't reported as underspend.
+2. **Monthly variance for months with no SOA yet** (after the Latest SOA Month). *Decided:* show Variance ($) and (%) only for months up to the Latest SOA Month, and leave later months blank. Quarter, FY and Project Total variances then compare actuals with projections **up to the Latest SOA Month only**, so a future plan isn't reported as underspend. *Why:* after the Latest SOA Month no actuals have been posted yet, so Actual would read 0 and Variance would equal −Projected for every future month, making the project look heavily underspent. Those periods' Actual and Variance cells are therefore left blank (not 0), and the cut-off moves forward each time a new SOA month is loaded. The Projected rows always run for the whole project.
 3. **Input shading colour:** light yellow `#FFFFE0` (default; change if there's a house style).
 
 ## 15. Future (not in this build)

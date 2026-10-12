@@ -209,7 +209,7 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
 ### 12 October 2026
 
 - The user moved the project selector to `E5:G5`. The VBA now takes the selector, notice, Calendar Basis and Last Refreshed cells from constants at the top of `vba/modTimeline.bas`. The build script and the release workbook still use row 6, so this needs aligning before any rebuild (the latest handover (`handovers/README.md`)).
-- The blank Actual/Variance cells after the Latest SOA Month reported on tDCS are the agreed rule (spec §14.2). Waiting for the user's decision on whether to keep it.
+- The blank Actual/Variance cells after the Latest SOA Month reported on tDCS are the agreed rule (spec §14.2). **Decided 12 Oct 2026: keep blank.**
 - **Data risk (12 Oct 2026):** the SOA file's XLOOKUPs to another workbook (project name, LOA dates) reach Power Query as the values stored at the SOA file's last save, not what's on screen. This is the likely cause of the stale tDCS end date. User routine: update links, save, sync, then Load Project. A post-UAT option is to do the lookup in Power Query. See `docs/PROJECT_REFERENCE.md` §4.
 - `CLAUDE.md` was restructured into goals, rules and a directory (under 200 lines). The detail moved to `docs/PROJECT_REFERENCE.md`.
 - **Stage 1 + row group (spec v1.0.5), `vba/modTimeline.bas`:** Line label merged across B:C and wrapped (row heights fitted through a helper column), IO·Code in D, Budget in E, spacer F:G, months still from H (`OFF_IO` 2, `OFF_BUDGET` 3, `OFF_FIRST` 6). Every build regroups rows 2–19 (`TOP_FIRST_ROW`/`TOP_LAST_ROW`, `GroupTopRows`); they used to disappear because `ClearGrid` clears the whole outline. Buttons set to move and size with cells (also in `modSetup`). Frozen panes untouched. `tests/grid_model.py` offsets updated: PASS. Not yet run in Excel; UAT tests 17–18.
@@ -222,3 +222,8 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
   - edited remarks count as unsaved changes.
   - Grid model: 44 checks PASS (Remarks header added). Not yet run in Excel; UAT 18.
 - **12 Oct 2026: the user tested the row group and the Remarks macros in desktop Excel and reported no issues (UAT 17–18 pass).** The install guide (md and docx) now covers Remarks and the top-row collapse.
+- **12 Oct 2026, decisions and close-outs:**
+  - future Actual/Variance stay **blank** (spec §14.2);
+  - the tDCS OT vs RA source data was **rectified by the user**;
+  - the line-item width item (Stage 1) is **closed**.
+- **Release zip repackaged without the workbook (user request):** `release/CashFlow_v0.9_package.zip` now holds the current macros (row-5 selector), docs, tests and handovers. The user imports the modules into their own v0.9_working copy. Restore a workbook only after the build script is aligned with row 5, then rebuild, verify and record its SHA-256.

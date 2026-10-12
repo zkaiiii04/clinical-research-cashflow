@@ -101,7 +101,7 @@ If the dashboard calculated Variance = Actual − Projected for those months:
 - Quarter, FY and Project Total variances would add up all those negatives, and the project would look **heavily underspent**. For tDCS, every planned dollar from Sep 2026 to Sep 2027 would count as "underspend".
 - That figure would be wrong and would change every month as SOA catches up. It would hide the real question: how is spending tracking against plan **for the months we actually have data for**?
 
-So the rule (spec §14.2, accepted by the user on 11 Oct 2026) is:
+So the rule (spec §14.2, accepted by the user on 11 Oct 2026 and reconfirmed on 12 Oct 2026: **keep blank**) is:
 - **Months, quarters and FY columns that lie entirely after the Latest SOA Month** get no Actual, Variance ($) or Variance (%) cells. They stay blank, not 0.
 - **A period that straddles the Latest SOA Month** (e.g. FY26/Q2 = Jul–Sep 2026 with SOA at Aug) shows Actual for its posted months, and Variance compares those actuals only with the projections **up to the Latest SOA Month**.
 - **The Project Total** Variance is actuals to date minus projections to date. Variance (%) = Variance ÷ projections to date.

@@ -77,8 +77,8 @@ Public Function SaveCore(ByVal fromLoad As Boolean) As Boolean
     If Not fromLoad Then
         If Not SelectionMatchesLoaded() Then
             MsgBox "Selection changed " & ChrW(&H2014) & " reload first." & vbCrLf & vbCrLf & _
-                   "The timeline shows " & src & " (" & mainIO & "), but E6/F6 now show a different project. " & _
-                   "Click Load Project, or set E6/F6 back to save.", vbExclamation, "Save Projections"
+                   "The timeline shows " & src & " (" & mainIO & "), but the project selector now shows a different project. " & _
+                   "Click Load Project, or set the selector back to save.", vbExclamation, "Save Projections"
             Exit Function
         End If
     End If
@@ -574,8 +574,8 @@ End Function
 Public Function SelectionMatchesLoaded() As Boolean
     Dim ws As Worksheet
     Set ws = modTimeline.DashSheet()
-    SelectionMatchesLoaded = modTimeline.SameText(ws.Range("E6").Value, LoadedProject()) And _
-                             modTimeline.SameText(ws.Range("F6").Value, LoadedMainIO())
+    SelectionMatchesLoaded = modTimeline.SameText(ws.Range(modTimeline.SEL_PROJECT).Value, LoadedProject()) And _
+                             modTimeline.SameText(ws.Range(modTimeline.SEL_MAINIO).Value, LoadedMainIO())
 End Function
 
 ' True when the input cells differ from what was loaded or last saved.

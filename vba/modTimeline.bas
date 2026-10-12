@@ -21,11 +21,20 @@ Public Const STORE_SHEET As String = "ProjectionStore"
 ' renaming it outside Excel broke its query link). If it is ever renamed in
 ' the Excel UI, change this one constant.
 Public Const MANPOWER_TABLE As String = "qManpower_SelectedTest"
+' Main_Dashboard cells the macros read and write. Change them here if the
+' selector or notice is moved on the sheet (the user moved the selector from
+' row 6 to row 5 on 12 Oct 2026).
+Public Const SEL_PROJECT As String = "E5"     ' Source Project dropdown
+Public Const SEL_MAINIO As String = "F5"      ' Main IO Code dropdown
+Public Const SEL_STATUS As String = "G5"      ' Setup Status formula
+Public Const NOTICE_CELL As String = "E7"     ' "Dashboard loaded by ..." notice
+Public Const BASIS_CELL As String = "C6"      ' Calendar Basis (Financial Year / Calendar Year)
+Public Const REFRESHED_CELL As String = "C10" ' Last Refreshed
 
 ' Grid columns are offsets from TL_Anchor (B21). The Line label sits in B and
 ' overflows across C:E, so IO-Code is in F, Budget in G and the collapsible
 ' month columns start at H. Collapsing a quarter therefore never hides the
-' selector (E6:G6) or the KPI cards above the grid.
+' selector (SEL_* cells) or the KPI cards above the grid.
 Private Const OFF_IO As Long = 4
 Private Const OFF_BUDGET As Long = 5
 Private Const OFF_FIRST As Long = 6
@@ -104,11 +113,11 @@ Public Sub LoadProject()
     End If
 
     ' 2. Setup Status must be Ready
-    v = ws.Range("G6").Value
+    v = ws.Range(SEL_STATUS).Value
     If IsError(v) Then status = "(error)" Else status = CleanText(v)
     If status <> "Ready" Then
         MsgBox "Setup Status is """ & status & """." & vbCrLf & vbCrLf & _
-               "Choose a Source Project in E6 and its Main IO in F6, then try again.", _
+               "Choose a Source Project in " & SEL_PROJECT & " and its Main IO in " & SEL_MAINIO & ", then try again.", _
                vbExclamation, "Load Project"
         Exit Sub
     End If
@@ -184,8 +193,8 @@ Public Function BuildGrid(ByVal isLoad As Boolean) As Boolean
     Dim msg As String, started As Boolean
     On Error GoTo Fail
     Set ws = DashSheet()
-    src = CleanText(ws.Range("E6").Value)
-    mainIO = CleanText(ws.Range("F6").Value)
+    src = CleanText(ws.Range(SEL_PROJECT).Value)
+    mainIO = CleanText(ws.Range(SEL_MAINIO).Value)
 
     ' 4. Consistency check, before anything on the sheet changes
     If Not CheckTables(src, mainIO, dispName, srcName, pStart, pEnd, msg) Then
@@ -200,7 +209,7 @@ Public Function BuildGrid(ByVal isLoad As Boolean) As Boolean
     started = True
     Application.StatusBar = "Load Project: building the timeline..."
     ResetModel
-    fyBasis = (CleanText(ws.Range("C6").Value) <> "Calendar Year")
+    fyBasis = (CleanText(ws.Range(BASIS_CELL).Value) <> "Calendar Year")
     BuildColumns pStart, pEnd
     ReadBudget
     ReadManpower src, mainIO
@@ -211,11 +220,11 @@ Public Function BuildGrid(ByVal isLoad As Boolean) As Boolean
     ' 5-7. Grid, saved projections, notice, session state
     WriteGrid ws, src, mainIO, dispName
     If isLoad Then
-        ws.Range("E7").Value = "Dashboard loaded by " & Application.UserName & " at " & _
+        ws.Range(NOTICE_CELL).Value = "Dashboard loaded by " & Application.UserName & " at " & _
                               Format$(Now, "d mmm yyyy h:mm AM/PM")
-        ws.Range("E7").Font.Italic = True
-        ws.Range("C10").Value = Now
-        ws.Range("C10").NumberFormat = "dd mmm yyyy hh:mm"
+        ws.Range(NOTICE_CELL).Font.Italic = True
+        ws.Range(REFRESHED_CELL).Value = Now
+        ws.Range(REFRESHED_CELL).NumberFormat = "dd mmm yyyy hh:mm"
     End If
     modStore.SetSession src, mainIO
     ProtectDashboard
@@ -238,7 +247,7 @@ Private Sub CleanupAfterFail(ByVal ws As Worksheet)
     On Error Resume Next
     ResetKpiNames
     modStore.SetSession "", ""
-    ws.Range("E7").Value = "Timeline build failed. Click Load Project again."
+    ws.Range(NOTICE_CELL).Value = "Timeline build failed. Click Load Project again."
     ProtectDashboard
     EndWork
 End Sub
@@ -1398,7 +1407,7 @@ Public Sub ProtectDashboard()
     Set ws = DashSheet()
     On Error Resume Next
     ws.Unprotect
-    ws.Range("C6,E6,F6").Locked = False
+    ws.Range(BASIS_CELL & "," & SEL_PROJECT & "," & SEL_MAINIO).Locked = False
     ws.EnableOutlining = True
     ws.Protect DrawingObjects:=True, Contents:=True, Scenarios:=True, _
                UserInterfaceOnly:=True, AllowFormattingColumns:=True, AllowFormattingRows:=True

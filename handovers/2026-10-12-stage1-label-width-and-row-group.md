@@ -54,6 +54,7 @@
 - `vba/modTimeline.bas`: `TOP_*`, `GroupTopRows`, `REMARK_WIDTH`, `TLine.RemarkRef/Remark`, `ReadRemarkRows`, `WriteRemarks`, layout column 8, `MarkDirty` call.
 - `vba/modStore.bas`: remarks area (`R_*`, `ReadRemarks`, `WriteRemarkRows`, `SaveRemarks`, `MoveRemark`, `DeleteRemark`, `RemarkIsKey`, `MarkDirty`), `LAYOUT_COLS` 8, span part 5, hash, conflict check, messages.
 - `vba/modSetup.bas`: buttons move and size with cells.
+- `docs/Clinical_Research_Cash_Flow_PRD_v1.9.docx` (was v1.8), `docs/Clinical_Research_Cash_Flow_TECHNICAL_SPECIFICATION.md` §6, `brainstorms/…` Q34, `prototypes/…` (snapshot note).
 - `release/CashFlow_v0.9_package.zip`: repackaged without a workbook. `docs/incidents/2026-10-11-v0.9-project-end-date.md`: OT vs RA closed. Install guide md/docx: no workbook in the package table.
 - `tests/grid_model.py`, `tests/UAT_test_script.md`, `specs/2026-10-11-cashflow-dynamic-timeline-spec.md`, `docs/PROJECT_REFERENCE.md`, `docs/Clinical_Research_Cash_Flow_Build.md`, `CLAUDE.md`, `handovers/README.md`.
 

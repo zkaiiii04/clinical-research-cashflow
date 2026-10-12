@@ -28,8 +28,8 @@ Read only what the task needs; don't scan the whole repo.
 | `handovers/2026-10-12-v0.9-design-build-uat.md` | History of 11–12 Oct: design, build, fixes (was `HANDOVER.md`) | You need background on how something came to be |
 | `specs/2026-10-11-cashflow-dynamic-timeline-spec.md` | **Authoritative build spec** (layout, macros, store, KPI cards, §13 tests, §14 decisions) | Any change to the timeline, macros or workbook |
 | `docs/PROJECT_REFERENCE.md` | Architecture, design summary, display conventions, data facts and risks (§4), checkpoints, techniques, variance cut-off (§7) | Data questions, reconciling figures, how to read or modify the workbook |
-| `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` | Q&A log of design decisions (Q1–Q33) | Someone asks why a design choice was made |
-| `docs/Clinical_Research_Cash_Flow_PRD_v1.8.docx` | Product requirements (v1.8) | Updating requirements or the change log |
+| `brainstorms/2026-10-11-cashflow-dynamic-timeline.md` | Q&A log of design decisions (Q1–Q34) | Someone asks why a design choice was made |
+| `docs/Clinical_Research_Cash_Flow_PRD_v1.9.docx` | Product requirements (v1.9) | Updating requirements or the change log |
 | `docs/Clinical_Research_Cash_Flow_TECHNICAL_SPECIFICATION.md` | Queries, manpower routing, rate rules, timeline tech spec | Power Query or manpower logic questions |
 | `docs/Clinical_Research_Cash_Flow_Build.md` | Build status log | Recording what was built or changed |
 | `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident (closed): Excel repair from an XML rename | Renaming anything, packaging, repair prompts |

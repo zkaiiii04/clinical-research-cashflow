@@ -152,13 +152,13 @@ Retain: Project Group, IO Code, Staff Group, Assignment ID, Item Description, Al
 
 Grade text must have a space before "(" for effective-date parsing. `SSN_Jul26(Nurse)` was corrected in the source by the user on 11 Oct 2026. `qManpowerRates` upper-cases Category.
 
-### 6. Dashboard timeline (approved design v1.0, build pending)
+### 6. Dashboard timeline (approved design v1.0, built as v0.9_working; revision v1.0.7, in UAT)
 
 This replaces the v0.8 fixed-capacity, formula-driven timeline (G21:BO56). Full detail is in the spec. The key technical points:
 
 #### 6.1 Inputs and driver
 
-- Driver: E6 Source Project + F6 Main IO. Project key = Source Project + Main IO.
+- Driver: Source Project + Main IO selector. In the user's working copy these are E5/F5 (Setup Status G5) since 12 Oct 2026; the macros read them from the `SEL_*` constants in `modTimeline`, so E6/F6 below mean those cells. Project key = Source Project + Main IO.
 - Reads `qProjects_SelectedTest` for the project dates (IO Code Type "Main" row; IREx project information), `tblSelectedProjectMapping` for the project names and Main IO (its Project Start/End are the SOA budget LOA dates and are only a fallback), `tblBudgetSelectedTest`, `qManpower_SelectedTest` and `tblActualsSelectedTest`. Load warns when the SOA LOA dates and the project dates differ.
 
 #### 6.2 Macros (new modules `modTimeline`, `modStore`; `Module1` untouched)
@@ -168,7 +168,7 @@ This replaces the v0.8 fixed-capacity, formula-driven timeline (G21:BO56). Full 
   - Refreshes only the five selected-test tables with `QueryTable.Refresh BackgroundQuery:=False`, restoring each table's background setting afterwards.
   - Runs a consistency check: every table must reflect E6/F6, otherwise it stops and leaves the grid unchanged.
   - Builds the grid at `TL_Anchor` (B21), loads the store, places Unmatched rows, writes the "loaded by" notice, captures the session state, and shows warnings (Rate not found, Admin rows, unmatched).
-- `SaveProjections`: checks the selection still matches; shows the conflict warning if the store's Saved At is later than the load time; replaces this project's store rows.
+- `SaveProjections`: checks the selection still matches; shows the conflict warning if the store's (or the remarks') Saved At is later than the load time; replaces this project's store rows and its remarks.
 - `ReassignUnmatched` / `DeleteUnmatched`.
 - `Workbook_Open`: only sets `EnableOutlining` and protects with `UserInterfaceOnly:=True`.
 - No `Worksheet_Change` / `AfterRefresh` / `SheetCalculate` handlers. Unsaved edits are detected by comparing input cells with a snapshot taken at load.
@@ -178,7 +178,8 @@ This replaces the v0.8 fixed-capacity, formula-driven timeline (G21:BO56). Full 
 - Columns:
   - Line | IO·Code | Budget.
   - Months from Project Start to Project End, with a quarter total after each quarter. Each quarter's months are grouped in the outline (summary on the right). Quarters at the start and end are partial.
-  - Then all FY (or CY) totals, then Project Total.
+  - Then all FY (or CY) totals, then Project Total, then **Remarks** (v1.0.7): an unlocked, wrapped text cell on every line row, about 40 characters wide.
+- Each build groups rows 2–19 above the grid (`TOP_FIRST_ROW`/`TOP_LAST_ROW`, `GroupTopRows`), summary row above. The pre-build clear removes the whole outline, so the group is rebuilt every time. The buttons move and size with their cells, so they hide with the rows. The macro never sets or clears frozen panes.
 - Quarter colours, total / month tint: Q1 `#BDD7EE`/`#DDEBF7`, Q2 `#C6E0B4`/`#E2EFDA`, Q3 `#FFE699`/`#FFF2CC`, Q4 `#F8CBAD`/`#FCE4D6`.
 - Labels: `FY25/Q3` (FY named by its starting year, Apr–Mar) or `2026 | Q1`.
 - IO·Code: the IO with the budget code joined on, no space (`TF25HIP136OM`). Manpower lines show the source manpower IO. Consecutive identical values are merged vertically.
@@ -192,6 +193,10 @@ This replaces the v0.8 fixed-capacity, formula-driven timeline (G21:BO56). Full 
 - `Dashboard_Settings!tblManpowerChargeTo`: Source Project, Main IO, Rate Category, IO Code → Charge To (MP / OM / EQ / CO / OTHER). The default is MP.
 - `ProjectionStore!tblProjectionStore` (very hidden): Source Project, Main IO, IO Code, Expense Category, Budget Code, Line Key, Budget Description, Month, Amount, Saved By, Saved At. A save replaces the project's rows. Blank is not stored; 0 is stored.
 - Unmatched saved rows (line gone, line now $0, month outside dates) are shown on an Unmatched row, counted in totals, and can be re-assigned or deleted.
+- **Remarks store** (v1.0.7): a plain range `ProjectionStore!W:AD` (Source Project, Main IO, Line Ref, Block, Description, Remark, Saved By, Saved At); `tblProjectionStore` is unchanged.
+  - Line Ref keys: budget lines use Block|Code|IO|LineKey; manpower lines `MPW|cat|IO`; Rate-not-found lines `RNF|SG|IO`; the MP out-of-range row `OOR|blk`; Unmatched rows from saved amounts `UNM|identity`.
+  - A remark whose line is gone shows on that line's Unmatched row (or a "remark only" row) and moves with Re-assign or goes with Delete.
+  - The layout area is `M:T`, and `TL_GridSpan` carries the Remarks column.
 
 #### 6.5 KPI cards and retirement
 

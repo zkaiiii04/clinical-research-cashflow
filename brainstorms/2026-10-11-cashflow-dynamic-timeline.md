@@ -247,5 +247,12 @@ Date: 2026-10-11 · Goal: Pin down every requirement for replacing the fixed, fo
 - User: **"approve, don't create yet."** Spec set to v1.0 APPROVED; build in v0.9_working NOT started.
 - User asked to convert PROJECT2.md into CLAUDE.md, update Build.md, TECHNICAL_SPECIFICATION.md and PRD (→ v1.7) with findings from this discussion, and write a handover doc for the next chat (HANDOVER.md).
 
+### Q34 — Quality-of-life changes after the build (12 Oct 2026; spec v1.0.5–v1.0.7)
+- User asked for three staged changes: a narrower line-item column, a Remarks column after Project Total, and collapsible rows 2–19. Done one stage at a time.
+- **Rows 2–19:** group them in the macro on every build, because grouping by hand disappeared on Load (`ClearOutline`). Keep the user's own frozen panes; this replaces the Q31 "no frozen panes" default, since the macro no longer touches panes. Tested OK.
+- **Narrower line-item column:** option 1 chosen (label B:C wrapped; IO·Code D; Budget E; months stay at H). B:C ≈ 40 characters was the narrowest possible without changing the top section's widths, and the user kept it. Then **withdrawn**: the user didn't like the empty F:G spacer. Item closed.
+- **Remarks:** a1 every line row; b1 saved per project; c1 follows the line to Unmatched and moves with Re-assign / goes with Delete; d1 about 40 characters, wrapped. Tested OK.
+- **Decisions:** future-period Actual/Variance stay **blank** (reconfirms §14.2). tDCS RA/OT staff-sheet placement **rectified in the IREx source** by the user. Release zip carries **no workbook** for now.
+
 ## Open flags (pending input)
 - Future (not blocking): MP may later move to parent/child with a Staff Group → budget-line mapping table.

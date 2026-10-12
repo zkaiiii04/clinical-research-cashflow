@@ -11,9 +11,9 @@ Project instructions for Claude. This file is a **directory, plus the goals and 
 
 ## Current state (12 October 2026)
 
-- **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (never modify). **Working copy:** `..._v0.9_working.xlsm`, **in UAT** in desktop Excel (spec v1.0.4).
+- **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (never modify). **Working copy:** `..._v0.9_working.xlsm`, **in UAT** in desktop Excel (spec v1.0.5).
 - The user's copy has the selector in **row 5** (VBA `SEL_*` constants). The build and release zip still use row 6, so align them before any rebuild.
-- **Requested, not started:** three staged UI changes (line-item width, Remarks column, collapsible rows 2–19). One stage at a time.
+- **Written, waiting on the user's Excel test:** narrower Line column (B:C, wrapped) and rows 2–19 grouped on every build (`modTimeline.bas`, UAT 17–18). **Not started:** Remarks column after Project Total (Stage 2).
 - **Next:** the latest handover in `handovers/README.md`.
 
 ## Directory: every file, and when to read it
@@ -23,7 +23,8 @@ Read only what the task needs; don't scan the whole repo.
 | File | What it is | Read when |
 |---|---|---|
 | `handovers/README.md` | Index of session handovers, routine and template | **Every session start**: open the LATEST handover it lists |
-| `handovers/2026-10-12-session-handover-structure-and-ui-requests.md` | Latest handover: staged UI requests, open items | Every session start (until a newer one exists) |
+| `handovers/2026-10-12-stage1-label-width-and-row-group.md` | Latest handover: Stage 1 + row group written, Stage 2 open | Every session start (until a newer one exists) |
+| `handovers/2026-10-12-session-handover-structure-and-ui-requests.md` | Earlier 12 Oct handover: Stage 1–3 findings and options | Background on the UI requests |
 | `handovers/2026-10-12-v0.9-design-build-uat.md` | History of 11–12 Oct: design, build, fixes (was `HANDOVER.md`) | You need background on how something came to be |
 | `specs/2026-10-11-cashflow-dynamic-timeline-spec.md` | **Authoritative build spec** (layout, macros, store, KPI cards, §13 tests, §14 decisions) | Any change to the timeline, macros or workbook |
 | `docs/PROJECT_REFERENCE.md` | Architecture, design summary, display conventions, data facts and risks (§4), checkpoints, techniques, variance cut-off (§7) | Data questions, reconciling figures, how to read or modify the workbook |
@@ -34,7 +35,7 @@ Read only what the task needs; don't scan the whole repo.
 | `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident (closed): Excel repair from an XML rename | Renaming anything, packaging, repair prompts |
 | `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Defect (closed): timeline used SOA LOA dates | Project dates, timeline length |
 | `docs/v0.9_Install_and_User_Guide.md` / `.docx` | User install and usage guide | Changing install steps or user-facing behaviour |
-| `tests/UAT_test_script.md` | 16 acceptance tests for desktop Excel | UAT results, adding tests |
+| `tests/UAT_test_script.md` | 18 acceptance tests for desktop Excel | UAT results, adding tests |
 | `tests/grid_model.py` | Python port of the grid; LibreOffice recalc; 43 checks | Any grid-logic change (keep in step with `modTimeline`) |
 | `vba/modTimeline.bas` | Load Project, refresh, checks, project dates, grid builder, layout offsets, **cell constants** | Timeline layout or behaviour changes |
 | `vba/modStore.bas` | Save, conflict check, unsaved edits, Unmatched re-assign/delete | Saving, the store, Remarks-type persistence |

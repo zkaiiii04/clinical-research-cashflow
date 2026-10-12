@@ -4,7 +4,8 @@ One handover document per working session, newest first. **Read only the latest 
 
 | Date | File | Summary |
 |---|---|---|
-| 12 Oct 2026 | [`2026-10-12-session-handover-structure-and-ui-requests.md`](2026-10-12-session-handover-structure-and-ui-requests.md) | **LATEST.** New per-session handover routine. Three staged dashboard changes requested (line-item width, Remarks column, collapsible rows 2–19), none started. Carried-forward open items. |
+| 12 Oct 2026 | [`2026-10-12-stage1-label-width-and-row-group.md`](2026-10-12-stage1-label-width-and-row-group.md) | **LATEST.** Stage 1 (Line column B:C, wrapped) and rows 2–19 grouped on every build, written; waiting on the user's Excel test. Stage 2 (Remarks) not started. |
+| 12 Oct 2026 | [`2026-10-12-session-handover-structure-and-ui-requests.md`](2026-10-12-session-handover-structure-and-ui-requests.md) | New per-session handover routine. Three staged dashboard changes requested (line-item width, Remarks column, collapsible rows 2–19), none started. Carried-forward open items. |
 | 11–12 Oct 2026 | [`2026-10-12-v0.9-design-build-uat.md`](2026-10-12-v0.9-design-build-uat.md) | Design discovery → spec v1.0 → v0.9 build → queryTable9 and end-date fixes → selector moved to row 5 → SOA XLOOKUP data risk. (Was `HANDOVER.md`.) |
 
 ## Routine (every session)

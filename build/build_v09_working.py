@@ -9,7 +9,7 @@ So this script copies every part of the v0.8 package unchanged and edits only
 the parts listed below. All Power Query parts stay byte-identical, and
 verify_v09_working.py checks that.
 
-What it changes (spec §4, §7, §8, §12; HANDOVER §4 steps 1-6)
+What it changes (spec §4, §7, §8, §12; handovers/2026-10-12-v0.9-design-build-uat.md §4 steps 1-6)
 -------------------------------------------------------------
 * Main_Dashboard (sheet1.xml):
   - removes the old timeline and input tables (rows 21-71); the macro builds

@@ -41,7 +41,7 @@ Detailed reference moved out of `CLAUDE.md` on 12 Oct 2026 so that `CLAUDE.md` s
   - MP is never typed into.
 - **Charge-to:** `tblManpowerChargeTo` on `Dashboard_Settings` moves a manpower line into another block as a locked row, e.g. AHS paid through OM.
 - **Actuals:** compared at **category level only**. Each block ends with Projected, Actual, Variance ($) = Actual − Projected, and Variance (%).
-  - Variance is shown only up to the Latest SOA Month. After it nothing has been posted yet, so a variance would show the whole future plan as underspend. Actual/Variance cells for periods wholly after the Latest SOA Month are left blank (HANDOVER §0.1).
+  - Variance is shown only up to the Latest SOA Month. After it nothing has been posted yet, so a variance would show the whole future plan as underspend. Actual/Variance cells for periods wholly after the Latest SOA Month are left blank (§7 below).
   - Actuals posted outside the project dates count in the Project Total, with a cell note.
 - **Cells:** plain values for data, and grid-local formulas for totals. No SUMIFS against Power Query tables.
 - **Store:**
@@ -90,3 +90,21 @@ Main IO `TF25HIP134`; manpower IO `TF25HIP134MP`; Revised Approved Budget **$250
 - **Grid logic:** `tests/grid_model.py <v0.8 or v0.9 workbook> <scratch dir>` ports the macro's grid to Python and recalculates it in LibreOffice (a throwaway copy only).
 - **After an Excel save** (test 13): `build/compare_pq.py <v0.8> <saved v0.9>`.
 - **Docx edits:** unzip, edit `word/document.xml`, rezip, validate (docx skill); keep the existing styles.
+
+## 7. Why Actual and Variance are blank after the Latest SOA Month
+
+The **Latest SOA Month** is the last month that has posted actuals in SOA (`MAX(tblActualsSelectedTest[Posting Month])`, shown in C9; for tDCS it's Aug 2026). For months after it, **no actuals have been posted yet**. That doesn't mean nothing was spent; the spending just hasn't been recorded.
+
+If the dashboard calculated Variance = Actual − Projected for those months:
+- Actual would be 0 (nothing posted), so every future month would show Variance = −Projected.
+- Quarter, FY and Project Total variances would add up all those negatives, and the project would look **heavily underspent**. For tDCS, every planned dollar from Sep 2026 to Sep 2027 would count as "underspend".
+- That figure would be wrong and would change every month as SOA catches up. It would hide the real question: how is spending tracking against plan **for the months we actually have data for**?
+
+So the rule (spec §14.2, accepted by the user on 11 Oct 2026) is:
+- **Months, quarters and FY columns that lie entirely after the Latest SOA Month** get no Actual, Variance ($) or Variance (%) cells. They stay blank, not 0.
+- **A period that straddles the Latest SOA Month** (e.g. FY26/Q2 = Jul–Sep 2026 with SOA at Aug) shows Actual for its posted months, and Variance compares those actuals only with the projections **up to the Latest SOA Month**.
+- **The Project Total** Variance is actuals to date minus projections to date. Variance (%) = Variance ÷ projections to date.
+- **The Projected rows** always run for the whole project, so the full plan stays visible.
+- **The cut-off moves forward on its own:** when the next month's SOA is posted and the user clicks Load Project, that month's (and quarter's) Actual and Variance appear.
+
+Code: `MonthLE` / `YearLE` and `WriteBlockSubtotals` / `WriteProjectTotal` in `vba/modTimeline.bas`. Tests: the "No variance after the Latest SOA Month" and "variance uses projections to SOA only" checks in `tests/grid_model.py`.

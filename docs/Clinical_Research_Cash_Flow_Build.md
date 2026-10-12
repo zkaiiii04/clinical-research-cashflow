@@ -213,3 +213,11 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
 - **Data risk (12 Oct 2026):** the SOA file's XLOOKUPs to another workbook (project name, LOA dates) reach Power Query as the values stored at the SOA file's last save, not what's on screen. This is the likely cause of the stale tDCS end date. User routine: update links, save, sync, then Load Project. A post-UAT option is to do the lookup in Power Query. See `docs/PROJECT_REFERENCE.md` §4.
 - `CLAUDE.md` was restructured into goals, rules and a directory (under 200 lines). The detail moved to `docs/PROJECT_REFERENCE.md`.
 - **Stage 1 + row group (spec v1.0.5), `vba/modTimeline.bas`:** Line label merged across B:C and wrapped (row heights fitted through a helper column), IO·Code in D, Budget in E, spacer F:G, months still from H (`OFF_IO` 2, `OFF_BUDGET` 3, `OFF_FIRST` 6). Every build regroups rows 2–19 (`TOP_FIRST_ROW`/`TOP_LAST_ROW`, `GroupTopRows`); they used to disappear because `ClearGrid` clears the whole outline. Buttons set to move and size with cells (also in `modSetup`). Frozen panes untouched. `tests/grid_model.py` offsets updated: PASS. Not yet run in Excel; UAT tests 17–18.
+- **Stage 1 withdrawn (spec v1.0.6):** the user didn't want the empty F:G spacer. `modTimeline.bas` is back to the pre-Stage-1 layout (`OFF_IO` 4, `OFF_BUDGET` 5, `OFF_FIRST` 6, no `FitLabels`), and the rows 2–19 group stays (UAT 17). Grid model PASS.
+- **Stage 2, Remarks (spec v1.0.7), `vba/modTimeline.bas` + `vba/modStore.bas`:**
+  - a Remarks column after Project Total on every line row;
+  - saved per project by Save Projections in `ProjectionStore!W:AD`; `tblProjectionStore` is unchanged;
+  - the layout area is now M:T (remark key), and `TL_GridSpan` has a 5th part (the Remarks column);
+  - remarks follow a line to its Unmatched row, and Re-assign/Delete move or remove them;
+  - edited remarks count as unsaved changes.
+  - Grid model: 44 checks PASS (Remarks header added). Not yet run in Excel; UAT 18.

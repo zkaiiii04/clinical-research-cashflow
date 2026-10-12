@@ -22,7 +22,7 @@ import sys
 
 import openpyxl
 
-OFF_IO, OFF_BUDGET, OFF_FIRST = 2, 3, 6  # keep in step with vba/modTimeline.bas
+OFF_IO, OFF_BUDGET, OFF_FIRST = 4, 5, 6  # keep in step with vba/modTimeline.bas
 BLOCKS = ["MP", "OM", "EQ", "CO", "OTHER"]
 
 
@@ -310,6 +310,8 @@ class Grid:
                 put(r0 + 1, sc, self.y[y][0])
             else:
                 put(r0 + 1, sc, "Project Total")
+        # Remarks column straight after Project Total (modTimeline WriteRemarks)
+        put(r0 + 1, fc + self.n_cols, "Remarks")
         for ln in self.ord:
             self.write_line(put, ln, c0, fc)
         for b in range(1, 6):
@@ -586,6 +588,7 @@ def main(src, scratch):
     hdr = [ws.cell(row=22, column=fc + c - 1).value for c in range(1, g.n_cols + 1)]
     check(hdr[-3:] == ["FY25 Total", "FY26 Total", "Project Total"], "FY: totals at the far right", problems)
     check(hdr[2] == "Q Total" and hdr[6] == "Q Total", "FY: a quarter total after each quarter", problems)
+    check(ws.cell(row=22, column=fc + g.n_cols).value == "Remarks", "FY: Remarks column after Project Total", problems)
 
     R = g.rows
     pt = fc + g.p_col - 1

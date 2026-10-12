@@ -26,7 +26,7 @@ Detailed reference moved out of `CLAUDE.md` on 12 Oct 2026 so that `CLAUDE.md` s
   4. Build the grid.
   5. Load the saved projections.
   6. Write "Dashboard loaded by <user> at <time>" beside the selector.
-- **Columns:** Line (B:C, wrapped) | IO·Code (D) | Budget (E) | spacer (F:G) | months from H with a quarter total after each quarter | all FY totals at the far right | Project Total.
+- **Columns:** Line (B, overflowing to E) | IO·Code (F) | Budget (G) | months from H with a quarter total after each quarter | all FY totals at the far right | Project Total | Remarks (typed per line, saved per project).
   - Quarters can be collapsed with Excel's outline, and each quarter number has a fixed colour.
   - Quarters at the start and end of the project are partial.
   - On the Calendar Year basis, CY totals replace the FY totals.

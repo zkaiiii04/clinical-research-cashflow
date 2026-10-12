@@ -20,7 +20,7 @@
 
 ## Decisions made (by the user)
 - Stage 1 layout: option 1 (label in fewer columns; IO·Code and Budget move left; months stay at H with a spacer).
-- Label width: answered "≈30 characters". **B:C is ≈40**: it's the narrowest possible without changing the B/C widths that the top section uses. Told the user; B alone (≈22) is the alternative.
+- Label width: answered "≈30 characters". **B:C is ≈40**: it's the narrowest possible without changing the B/C widths that the top section uses. Offered B:C ≈40 / B only ≈22 / ≈30 by narrowing C (changes the top); **the user chose to keep B:C ≈40 as built.**
 - Group rows 2–19 in the macro, and keep the user's frozen panes as they are.
 
 ## Open items / waiting on the user

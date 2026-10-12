@@ -29,30 +29,32 @@
 ## Decisions made (by the user)
 - Group rows 2–19 in the macro; keep the user's own frozen panes.
 - Stage 1: chose option 1, then withdrew it (doesn't like the empty F:G). F:G stays as before for now.
+- Later the same day: future-period Actual/Variance **stay blank** (spec §14.2); tDCS OT vs RA was **rectified by the user** in the source; the line-item width item is **closed**; remove the workbook from the release zip for now.
 - Remarks: a1 every line row; b1 saved per project; c1 follows the line to Unmatched and moves with Re-assign/Delete; d1 about 40 characters wrapped; placed after Project Total.
 
 ## Open items / waiting on the user
 - ~~Test in Excel~~: **done.** The user reported no issues with the new macros (UAT 17–18).
-- Line-item width (Stage 1) is parked. Revisit only if the user raises it again (F:G options above).
+- ~~Line-item width~~: **closed by the user.**
 - In the MP block a remark-only Unmatched row can't be re-assigned, only deleted, because Re-assign needs a typed line and MP has none. This is documented in spec §5.5. Change it only if the user asks.
 - Any shapes in rows 2–19 other than `btnTL_*` keep their own placement and may float over the grid when collapsed. → ask if seen
 - ~~Install guide~~: **done.** `docs/v0.9_Install_and_User_Guide.md` describes Remarks, the top-row collapse and tests 1–18; the `.docx` was regenerated with pandoc, using the old docx as the reference doc.
+- ~~Future Actual 0 vs blank~~: **keep blank.** ~~tDCS OT vs RA~~: **rectified by the user.**
+- **Release zip:** repackaged **without a workbook**, with the current modules, docs, tests and handovers. `build/build_v09_working.py` still writes the row-6 layout, so align it with the user's row-5 copy before a workbook goes back in the zip (rebuild, verify, SHA-256). → needs the user's workbook, only when a rebuild is wanted
 - Carried forward:
-  - UAT 1–16 results;
-  - future Actual shown as 0 vs blank;
-  - tDCS OT vs RA source check;
-  - the build and release zip still use row 6 (the user's copy uses row 5) and don't include these modules;
-  - the SOA XLOOKUP routine;
-  - promotion after UAT.
+  - UAT 1–16 results → user;
+  - the SOA XLOOKUP routine (`docs/PROJECT_REFERENCE.md` §4);
+  - promotion of the selected-test queries after UAT sign-off.
 
 ## Next session: do this first
-1. Pick up the carried-forward items: UAT 1–16 results; the future-Actual decision; the tDCS OT vs RA check.
-2. Before any rebuild or release, align the build and release zip with the user's row-5 layout and the current modules (needs the user's workbook).
+1. Ask for the UAT 1–16 results (and the sign-off if all pass).
+2. After sign-off: plan the promotion of the selected-test queries, one at a time (CLAUDE.md rules).
+3. Only if a workbook must go back in the zip: align the build script with row 5 using the user's workbook, then rebuild, verify and record the SHA-256.
 
 ## Files touched
 - `vba/modTimeline.bas`: `TOP_*`, `GroupTopRows`, `REMARK_WIDTH`, `TLine.RemarkRef/Remark`, `ReadRemarkRows`, `WriteRemarks`, layout column 8, `MarkDirty` call.
 - `vba/modStore.bas`: remarks area (`R_*`, `ReadRemarks`, `WriteRemarkRows`, `SaveRemarks`, `MoveRemark`, `DeleteRemark`, `RemarkIsKey`, `MarkDirty`), `LAYOUT_COLS` 8, span part 5, hash, conflict check, messages.
 - `vba/modSetup.bas`: buttons move and size with cells.
+- `release/CashFlow_v0.9_package.zip`: repackaged without a workbook. `docs/incidents/2026-10-11-v0.9-project-end-date.md`: OT vs RA closed. Install guide md/docx: no workbook in the package table.
 - `tests/grid_model.py`, `tests/UAT_test_script.md`, `specs/2026-10-11-cashflow-dynamic-timeline-spec.md`, `docs/PROJECT_REFERENCE.md`, `docs/Clinical_Research_Cash_Flow_Build.md`, `CLAUDE.md`, `handovers/README.md`.
 
 ## Gotchas learned

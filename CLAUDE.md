@@ -12,8 +12,8 @@ Project instructions for Claude. This file is a **directory, plus the goals and 
 ## Current state (12 October 2026)
 
 - **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (never modify). **Working copy:** `..._v0.9_working.xlsm`, **in UAT** in desktop Excel (spec v1.0.7).
-- The user's copy has the selector in **row 5** (VBA `SEL_*` constants). The build and release zip still use row 6, so align them before any rebuild.
-- **Done and tested in Excel by the user (12 Oct):** rows 2–19 grouped on every build (UAT 17) and the **Remarks** column after Project Total, saved per project in `ProjectionStore!W:AD` (UAT 18). Stage 1 (narrower Line column) was **withdrawn by the user** (empty F:G). The release zip doesn't contain these modules yet.
+- The user's copy has the selector in **row 5** (VBA `SEL_*` constants). The build script still writes row 6, so align it before any rebuild. The release zip has **no workbook** for now (modules and docs only).
+- **Done and tested in Excel by the user (12 Oct):** rows 2–19 grouped on every build (UAT 17) and the **Remarks** column after Project Total, saved per project in `ProjectionStore!W:AD` (UAT 18). Stage 1 (narrower Line column) was **withdrawn by the user** (empty F:G). Future Actual/Variance stay blank (decided). Open: UAT 1–16 results, then promotion.
 - **Next:** the latest handover in `handovers/README.md`.
 
 ## Directory: every file, and when to read it
@@ -44,7 +44,7 @@ Read only what the task needs; don't scan the whole repo.
 | `build/build_v09_working.py` | Builds v0.9 from v0.8 by package-XML edits (C7/C8, sheets, names) | Rebuilding the workbook |
 | `build/verify_v09_working.py` | Verifies a build (PQ byte-identical, cross-part links) | After every build |
 | `build/compare_pq.py` | Test 13: PQ unchanged after an Excel save | A user returns a saved workbook |
-| `release/CashFlow_v0.9_package.zip` | Release for download (row-6 workbook, matching modules, docs) | Packaging or download questions |
+| `release/CashFlow_v0.9_package.zip` | Release for download: current modules, docs, tests, handovers; **no workbook** for now | Packaging or download questions |
 | `prototypes/cashflow-timeline-prototype.html` | Approved visual prototype (https://claude.ai/artifact/AYqLAxM4obRV3eJAXDBLDv) | Visual layout questions |
 | `.gitattributes` / `.gitignore` | CRLF for `.bas`/`.txt`; workbooks ignored | Line-ending or commit problems |
 

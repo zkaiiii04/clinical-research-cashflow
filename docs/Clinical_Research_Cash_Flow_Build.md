@@ -226,4 +226,9 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
   - future Actual/Variance stay **blank** (spec §14.2);
   - the tDCS OT vs RA source data was **rectified by the user**;
   - the line-item width item (Stage 1) is **closed**.
+- **Docs brought up to date (12 Oct 2026):**
+  - PRD is now v1.9 (`docs/Clinical_Research_Cash_Flow_PRD_v1.9.docx`): selector row 5, row group, Remarks, decisions, change log;
+  - technical specification §6 (Remarks, row group, selector constants);
+  - brainstorm Q34;
+  - the prototype is marked as the approved v1.0 snapshot.
 - **Release zip repackaged without the workbook (user request):** `release/CashFlow_v0.9_package.zip` now holds the current macros (row-5 selector), docs, tests and handovers. The user imports the modules into their own v0.9_working copy. Restore a workbook only after the build script is aligned with row 5, then rebuild, verify and record its SHA-256.

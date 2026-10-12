@@ -9,7 +9,7 @@
 ## 0. START HERE: UAT in progress (as of 12 Oct 2026)
 
 **Where things stand:**
-- v0.9_working (spec v1.0.4) is built. `release/CashFlow_v0.9_package.zip` on `main` has the workbook and its SHA-256 in `README_FIRST.txt`, plus the current `vba/` modules (CRLF; import them from the zip, not GitHub "Raw").
+- v0.9_working (spec v1.0.4) is built. `release/CashFlow_v0.9_package.zip` on `main` has the workbook (selector in **row 6**), its SHA-256 in `README_FIRST.txt`, and `vba/` modules that match **that** workbook (row-6 cells). **The user's working copy has the selector in row 5** and runs the newer modules from `main` `vba/`, sent as chat attachments on 12 Oct (CRLF; never point the user at GitHub "Raw"). Before repackaging, align the build with the row-5 layout using the user's current workbook.
 - **Timeline end-date defect: closed.** The timeline and C7/C8 now use the IREx project dates in `qProjects_SelectedTest`. The SOA budget LOA dates in `tblSelectedProjectMapping` are only a fallback, and Load warns when they differ. The user confirmed tDCS works in desktop Excel. The stale 31 Dec 2026 came from a source-file column Power Query reads (SOA LOA end). See `docs/incidents/2026-10-11-v0.9-project-end-date.md`.
 - **queryTable9 repair: closed.** The rebuilt copy, which keeps the v0.8 manpower names, opens and loads without a repair prompt (§0b).
 

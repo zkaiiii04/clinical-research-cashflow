@@ -14,6 +14,11 @@
 - **queryTable9 repair: closed.** The rebuilt copy, which keeps the v0.8 manpower names, opens and loads without a repair prompt (§0b).
 
 **12 Oct 2026 changes:**
+- **Data risk: stale XLOOKUP values in the SOA file.** The SOA file fills some columns, such as the project name (and the LOA dates behind the catalogue), with XLOOKUPs to another workbook. Power Query reads the file **as saved on SharePoint**, so it gets each formula's stored value from the last save, not what's on screen. Having both files open doesn't help. This is the likely root cause of the stale tDCS end date.
+  - A stale project name silently drops rows from the selected-test joins.
+  - **User routine:** in the SOA file, Data → Edit Links → Update Values, check the values, save, let it sync, then Load Project.
+  - **Post-UAT option:** read the lookup source in Power Query and match in M, or paste that column as values.
+  - Details: `docs/PROJECT_REFERENCE.md` §4.
 - **Selector moved to row 5 (user, in their working copy).** The VBA now reads the selector cells from constants at the top of `vba/modTimeline.bas` (`SEL_PROJECT` = E5, `SEL_MAINIO` = F5, `SEL_STATUS` = G5; `NOTICE_CELL` = E7, `BASIS_CELL` = C6, `REFRESHED_CELL` = C10). `modStore` and `modSetup` use them too.
   - The workbook formulas that must point at the new cells: `Lists!N4:P4` (`=Main_Dashboard!E5/F5/G5`), the Setup Status formula (now G5, referencing E5/F5), and the data validations on E5 (`CatalogueProjectNames`) and F5 (`SelectedProjectIOCodes`). These follow automatically if the cells were cut and pasted.
   - **Mismatch to fix before any rebuild:** `build/build_v09_working.py` and the release workbook still put the selector in row 6. Either teach the build the row-5 layout (ask the user for their current workbook to copy the exact layout) or set the constants back to row 6 for a fresh install.
@@ -77,7 +82,7 @@ When the user opened the v0.9 package workbook from SharePoint in desktop Excel,
 
 ## 1. Read these first, in this order
 
-1. `CLAUDE.md`: project rules, architecture, conventions, data quirks.
+1. `CLAUDE.md`: goals, rules and a directory of the repo. Then `docs/PROJECT_REFERENCE.md`: architecture, design summary, display conventions, data facts and data risks.
 2. `specs/2026-10-11-cashflow-dynamic-timeline-spec.md`: **the build spec (authoritative).** §10 covers the macros, §12 the KPI repointing and migration, §13 the 16 acceptance tests.
 3. `brainstorms/2026-10-11-cashflow-dynamic-timeline.md`: why each decision was made (Q1–Q33). The summary at the top is reconciled; the later Q entries supersede earlier ones where they conflict, and those are marked.
 4. `prototypes/cashflow-timeline-prototype.html`: what the user approved visually (https://claude.ai/artifact/AYqLAxM4obRV3eJAXDBLDv).
@@ -136,6 +141,8 @@ Supporting documents, updated this session: `docs/Clinical_Research_Cash_Flow_PR
 9. Commit the `.bas` files, the build script and the test script to the branch. Don't commit the workbook unless the user asks.
 
 ## 5. Gotchas found this session
+
+- **Power Query reads saved files, not open ones.** Formula values in a source workbook (e.g. SOA XLOOKUPs to another file) are whatever was stored at its last save to SharePoint. Ask the user to update links, save and sync before refreshing.
 
 - `Assignment ID` / `Source Row ID` in `qManpower_SelectedTest` change every month, because they're numbered after the unpivot. **Don't use them as line keys.** Group by Rate Category + IO.
 - The saved snapshots in v0.8 come from different refreshes: budget, actuals and projects show Esko Combo, while mapping and manpower show 3D Gait. The macro's consistency check exists because of this.

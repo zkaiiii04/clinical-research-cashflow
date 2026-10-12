@@ -210,3 +210,5 @@ Automatic selected-project testing has passed for budget, actuals, projects and 
 
 - The user moved the project selector to `E5:G5`. The VBA now takes the selector, notice, Calendar Basis and Last Refreshed cells from constants at the top of `vba/modTimeline.bas`. The build script and the release workbook still use row 6, so this needs aligning before any rebuild (HANDOVER §0).
 - The blank Actual/Variance cells after the Latest SOA Month reported on tDCS are the agreed rule (spec §14.2). Waiting for the user's decision on whether to keep it.
+- **Data risk (12 Oct 2026):** the SOA file's XLOOKUPs to another workbook (project name, LOA dates) reach Power Query as the values stored at the SOA file's last save, not what's on screen. This is the likely cause of the stale tDCS end date. User routine: update links, save, sync, then Load Project. A post-UAT option is to do the lookup in Power Query. See `docs/PROJECT_REFERENCE.md` §4.
+- `CLAUDE.md` was restructured into goals, rules and a directory (under 200 lines). The detail moved to `docs/PROJECT_REFERENCE.md`.

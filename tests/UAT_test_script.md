@@ -218,7 +218,7 @@ Expected:
 - The long remark wraps and its row grows. Block headers and subtotal rows have no remark cell (you can't type there).
 - Load 3D Gait, then load Esko Combo again: all three remarks are back on the same lines.
 - Edit a remark, then change the selector and click Load Project: you are asked **"Save changes to … first?"**
-- (If you have a test line you can remove from the budget) its remark shows on its **Unmatched** row; Re-assign moves the remark to the chosen line, and Delete removes it.
+- (If you have a test line you can remove from the budget) its remark shows on its **Unmatched** row; Re-assign moves the remark to the chosen line, and Delete removes it. (In the MP block a remark-only row can only be deleted.)
 
 ---
 

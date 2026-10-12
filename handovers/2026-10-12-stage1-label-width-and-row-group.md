@@ -34,6 +34,7 @@
 ## Open items / waiting on the user
 - **Test in Excel:** import `modTimeline.bas` **and** `modStore.bas` (VBE: remove both, File → Import). Debug → Compile, Load a project, then UAT 17–18. → user
 - Line-item width (Stage 1) is parked. Revisit only if the user raises it again (F:G options above).
+- In the MP block a remark-only Unmatched row can't be re-assigned, only deleted, because Re-assign needs a typed line and MP has none. This is documented in spec §5.5. Change it only if the user asks.
 - Any shapes in rows 2–19 other than `btnTL_*` keep their own placement and may float over the grid when collapsed. → ask if seen
 - `docs/v0.9_Install_and_User_Guide.md` / `.docx` don't describe Remarks or the row group yet. Update after UAT 17–18 pass.
 - Carried forward:

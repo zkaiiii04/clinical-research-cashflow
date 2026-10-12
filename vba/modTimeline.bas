@@ -892,7 +892,7 @@ Private Sub ReadRemarkRows(ByVal src As String, ByVal mainIO As String)
                 If stored <> L(idx).RemarkRef Or L(idx).Remark <> "" Then remarkMoved = True
                 If L(idx).Remark = "" Then
                     L(idx).Remark = txt
-                ElseIf InStr(1, L(idx).Remark, txt, vbBinaryCompare) = 0 Then
+                ElseIf InStr(1, " | " & L(idx).Remark & " | ", " | " & txt & " | ", vbBinaryCompare) = 0 Then
                     L(idx).Remark = L(idx).Remark & " | " & txt
                 End If
             End If
@@ -923,7 +923,7 @@ Private Sub SortLines()
             Else
                 L(i).SortKey = b & "|" & rank & "|" & L(i).IOCode & "|" & Format$(L(i).Seq, "000000")
             End If
-            If b = 5 And L(i).Kind <> "MP_OOR" And L(i).Kind <> "MANPOWER" Then otherCodes(CodeText(L(i).Code)) = True
+            If b = 5 And L(i).Kind <> "MP_OOR" And L(i).Kind <> "MANPOWER" And L(i).Code <> "MP" Then otherCodes(CodeText(L(i).Code)) = True
             nOrd = nOrd + 1
             ord(nOrd) = i
         End If
@@ -1351,6 +1351,8 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_BUDGET), ws.Cells(lastRow, lastC)).NumberFormat = FMT_MONEY
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_IO), ws.Cells(lastRow, c0 + OFF_IO)).Font.Size = 9
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_IO), ws.Cells(lastRow, c0 + OFF_IO)).Font.Color = HexColor("4B5A54")
+    ' A long remark makes its row taller; keep the row's figures centred
+    ws.Range(ws.Cells(r0 + 2, c0), ws.Cells(lastRow, lastC)).VerticalAlignment = xlCenter
 
     ' Line rows
     For i = 1 To nOrd

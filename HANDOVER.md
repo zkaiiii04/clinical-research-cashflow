@@ -1,15 +1,15 @@
 # Handover: Clinical Research Cash Flow Dashboard Timeline
 
-**From session:** 11 October 2026 (design discovery → spec approval)
+**Last updated:** 12 October 2026 (sessions on 11–12 Oct: design → build → UAT fixes)
 **Where:** `main` branch of `zkaiiii04/clinical-research-cashflow` (renamed from `wardrobe-atlas` on 11 Oct 2026; GitHub redirects the old name). Design work was merged in PR #1; the unrelated Wardrobe Atlas page was removed in PR #2.
-**Status:** spec **v1.0 approved** (revision v1.0.4). v0.9_working is built and **in UAT**. Both 11 Oct issues are closed and confirmed in desktop Excel. 12 Oct: the selector moved to row 5 (VBA updated), and the user asked why variance is blank after the Latest SOA Month (explained in §0.1). Next: finish UAT (§0), then promote the selected-test queries.
+**Status:** spec **v1.0 approved** (revision v1.0.4). v0.9_working is built and **in UAT** in desktop Excel. Both 11 Oct issues are closed and confirmed in Excel. 12 Oct: the selector moved to row 5 (VBA updated); the blank Actual/Variance after the Latest SOA Month was explained (§0.1); the SOA XLOOKUP stale-value data risk was logged; `CLAUDE.md` was restructured into goals, rules and a directory (detail now in `docs/PROJECT_REFERENCE.md`). Next: §0 "Next session".
 
 ---
 
 ## 0. START HERE: UAT in progress (as of 12 Oct 2026)
 
 **Where things stand:**
-- v0.9_working (spec v1.0.3) is built. `release/CashFlow_v0.9_package.zip` on `main` has the workbook and its SHA-256 in `README_FIRST.txt`, plus the current `vba/` modules (CRLF; import them from the zip, not GitHub "Raw").
+- v0.9_working (spec v1.0.4) is built. `release/CashFlow_v0.9_package.zip` on `main` has the workbook and its SHA-256 in `README_FIRST.txt`, plus the current `vba/` modules (CRLF; import them from the zip, not GitHub "Raw").
 - **Timeline end-date defect: closed.** The timeline and C7/C8 now use the IREx project dates in `qProjects_SelectedTest`. The SOA budget LOA dates in `tblSelectedProjectMapping` are only a fallback, and Load warns when they differ. The user confirmed tDCS works in desktop Excel. The stale 31 Dec 2026 came from a source-file column Power Query reads (SOA LOA end). See `docs/incidents/2026-10-11-v0.9-project-end-date.md`.
 - **queryTable9 repair: closed.** The rebuilt copy, which keeps the v0.8 manpower names, opens and loads without a repair prompt (§0b).
 
@@ -43,10 +43,15 @@ So the rule (spec §14.2, accepted by the user on 11 Oct 2026) is:
 Code: `MonthLE` / `YearLE` and `WriteBlockSubtotals` / `WriteProjectTotal` in `vba/modTimeline.bas`. Tests: the "No variance after the Latest SOA Month" and "variance uses projections to SOA only" checks in `tests/grid_model.py`.
 
 **Next session:**
-1. Ask the user for their UAT results: the 16 tests in `tests/UAT_test_script.md`, including test 16 (tDCS project dates) and the Debug → Compile result. Fix what fails. If grid logic changes, keep `tests/grid_model.py` in step with `vba/modTimeline.bas` and re-run it (43 checks).
-2. **Open source-data question (tDCS OT vs RA):** the manpower table shows RA = 43,575 (from `DB_RA_Distrib`) and AHS (OT/PT) = 11,150 (from `DB_AHS_Nurse_Distrib`), the reverse of what the user expected (budget OT 42,000 / RA 10,800). The staff group comes from which IREx sheet a row is on. Ask whether they checked IREx. If the OT person moves to the AHS sheet, their amount changes (priced at their AHS grade, not AH11 RA). This isn't a workbook bug unless the source proves otherwise.
-3. After UAT sign-off: promote the selected-test queries one at a time (CLAUDE.md business rules) and delete `Legacy_Timeline`.
-4. For test 13: `python3 -I build/compare_pq.py <v0.8> <user's saved v0.9>`.
+1. **Ask for:** the current v0.9_working (selector in row 5), the UAT results for the 16 tests in `tests/UAT_test_script.md` (including test 16, tDCS project dates) and the Debug → Compile result. Fix what fails. If grid logic changes, keep `tests/grid_model.py` in step with `vba/modTimeline.bas` and re-run it (43 checks).
+2. **Open decision:** keep Actual blank after the Latest SOA Month, or show it as 0 while Variance stays blank (§0.1).
+3. **Open source-data question (tDCS OT vs RA):** the manpower table shows RA = 43,575 (`DB_RA_Distrib`) and AHS (OT/PT) = 11,150 (`DB_AHS_Nurse_Distrib`), the reverse of what the user expected (budget OT 42,000 / RA 10,800). The staff group comes from which IREx sheet a row is on. Ask whether they checked IREx. If the OT person moves to the AHS sheet, their amount changes (priced at their AHS grade). This isn't a workbook bug unless the source proves otherwise.
+4. **SOA XLOOKUP routine:** before any reconciliation, check the user updated links, saved and synced the SOA file. If values still look stale, compare the SOA cell on screen with what Power Query loaded.
+5. **Before any rebuild:** align `build/build_v09_working.py` with the user's row-5 selector layout (copy it from their current workbook), re-verify and repackage.
+6. **After UAT sign-off:**
+   - promote the selected-test queries one at a time (`CLAUDE.md` rules) and delete `Legacy_Timeline`;
+   - consider moving the SOA XLOOKUP into Power Query (`docs/PROJECT_REFERENCE.md` §4).
+7. **Test 13:** `python3 -I build/compare_pq.py <v0.8> <user's saved v0.9>`.
 
 ## 0b. v0.9 repair error (queryTable9): closed 11 Oct 2026 (history)
 

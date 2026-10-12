@@ -22,7 +22,7 @@ import sys
 
 import openpyxl
 
-OFF_IO, OFF_BUDGET, OFF_FIRST = 4, 5, 6
+OFF_IO, OFF_BUDGET, OFF_FIRST = 2, 3, 6  # keep in step with vba/modTimeline.bas
 BLOCKS = ["MP", "OM", "EQ", "CO", "OTHER"]
 
 

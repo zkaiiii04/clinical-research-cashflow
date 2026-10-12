@@ -200,6 +200,23 @@ Expected (if the SOA budget LOA dates for tDCS still end 31 Dec 2026; if you've 
 - No "Unmatched: manpower months outside project dates" row.
 - The two manpower lines' Project Totals add up to MP Projected, and MP Projected equals the total of `Projected Amount ($)` in `qManpower_SelectedTest` (54,725 with the data on 11 Oct 2026).
 
+### 17. Narrower Line column
+1. Load HoW2.0 - Esko Combo (or any project with long line descriptions).
+
+Expected:
+- Line labels sit in B:C and wrap onto a second line when long; those rows are taller and nothing is cut off.
+- IO·Code is in D, Budget in E, F:G are empty, and the months start at H.
+- Rows 1–19 (KPI cards, selector, buttons) and their column widths look the same as before.
+- Collapsing a quarter still doesn't hide anything above the grid.
+
+### 18. Collapsible top rows
+1. After Load Project, click the **−** beside row 1 (left of the row numbers).
+
+Expected:
+- Rows 2–19 hide; the four buttons hide with them and nothing floats over the timeline. **+** shows them again.
+- Load another project: the group is still there.
+- Works with the sheet protected, and your frozen panes are unchanged.
+
 ---
 
 ## What to send back

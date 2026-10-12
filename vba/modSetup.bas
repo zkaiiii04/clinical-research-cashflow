@@ -58,7 +58,9 @@ Private Sub AddButton(ByVal ws As Worksheet, ByVal btnName As String, ByVal capt
     b.Name = btnName
     b.Caption = caption
     b.OnAction = macro
-    b.Placement = xlFreeFloating
+    ' Move and size with the cells, so the buttons hide when rows
+    ' TOP_FIRST_ROW:TOP_LAST_ROW are collapsed (modTimeline.GroupTopRows)
+    b.Placement = xlMoveAndSize
     b.Font.Bold = True
 End Sub
 

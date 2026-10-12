@@ -30,13 +30,18 @@ Public Const SEL_STATUS As String = "G5"      ' Setup Status formula
 Public Const NOTICE_CELL As String = "E7"     ' "Dashboard loaded by ..." notice
 Public Const BASIS_CELL As String = "C6"      ' Calendar Basis (Financial Year / Calendar Year)
 Public Const REFRESHED_CELL As String = "C10" ' Last Refreshed
+' Rows above the grid (selector, KPI cards, buttons) that each build groups so
+' they collapse with the +/- beside row 1 (user request 12 Oct 2026).
+Public Const TOP_FIRST_ROW As Long = 2
+Public Const TOP_LAST_ROW As Long = 19
 
-' Grid columns are offsets from TL_Anchor (B21). The Line label sits in B and
-' overflows across C:E, so IO-Code is in F, Budget in G and the collapsible
-' month columns start at H. Collapsing a quarter therefore never hides the
-' selector (SEL_* cells) or the KPI cards above the grid.
-Private Const OFF_IO As Long = 4
-Private Const OFF_BUDGET As Long = 5
+' Grid columns are offsets from TL_Anchor (B21). The Line label is merged
+' across B:C on each line row and wraps, IO-Code is in D and Budget in E.
+' F:G are an empty spacer: the collapsible month columns still start at H, so
+' collapsing a quarter never hides the selector (SEL_* cells) or the KPI cards
+' above the grid, and B:G keep the widths the top section uses.
+Private Const OFF_IO As Long = 2
+Private Const OFF_BUDGET As Long = 3
 Private Const OFF_FIRST As Long = 6
 
 Private Const FMT_MONEY As String = "#,##0;[Red](#,##0)"
@@ -968,6 +973,7 @@ Private Sub WriteGrid(ByVal ws As Worksheet, ByVal src As String, ByVal mainIO A
             .VerticalAlignment = xlCenter
         End With
     Next it
+    FitLabels ws, c0, lastC, shown, lf, ll
     WriteNotes ws, firstC, shown, rA, rP
 
     ' Outline: each quarter's months collapse into its total (summary on the right)
@@ -975,6 +981,7 @@ Private Sub WriteGrid(ByVal ws As Worksheet, ByVal src As String, ByVal mainIO A
     For q = 1 To nQ
         ws.Range(ws.Columns(firstC + qFirstC(q) - 1), ws.Columns(firstC + qLastC(q) - 1)).Group
     Next q
+    GroupTopRows ws
 
     ws.Hyperlinks.Add Anchor:=ws.Cells(lastRow + 2, c0), Address:="", _
         SubAddress:="'" & DASH_SHEET & "'!A1", TextToDisplay:="Back to Top"
@@ -1237,7 +1244,7 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
         .HorizontalAlignment = xlCenter
         .VerticalAlignment = xlCenter
     End With
-    ws.Range(ws.Cells(r0, c0), ws.Cells(r0 + 1, c0 + OFF_BUDGET)).Interior.Color = HexColor("EEF2F0")
+    ws.Range(ws.Cells(r0, c0), ws.Cells(r0 + 1, firstC - 1)).Interior.Color = HexColor("EEF2F0")
     ws.Cells(r0, c0).HorizontalAlignment = xlLeft
     ws.Cells(r0 + 1, c0).HorizontalAlignment = xlLeft
     ws.Range(ws.Cells(r0 + 1, firstC), ws.Cells(r0 + 1, lastC)).NumberFormat = "mmm yy"
@@ -1249,6 +1256,9 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_BUDGET), ws.Cells(lastRow, lastC)).NumberFormat = FMT_MONEY
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_IO), ws.Cells(lastRow, c0 + OFF_IO)).Font.Size = 9
     ws.Range(ws.Cells(r0 + 2, c0 + OFF_IO), ws.Cells(lastRow, c0 + OFF_IO)).Font.Color = HexColor("4B5A54")
+    ws.Range(ws.Cells(r0 + 2, c0 + OFF_IO), ws.Cells(lastRow, c0 + OFF_IO)).ShrinkToFit = True
+    ' Wrapped labels make some rows taller; keep each row's cells on one line
+    ws.Range(ws.Cells(r0 + 2, c0), ws.Cells(lastRow, lastC)).VerticalAlignment = xlCenter
 
     ' Line rows
     For i = 1 To nOrd
@@ -1304,7 +1314,7 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
     End With
     ws.Range(ws.Cells(rVP(6), c0 + OFF_BUDGET), ws.Cells(rVP(6), lastC)).NumberFormat = FMT_PCT
 
-    ' Light grid lines; no vertical lines inside B:E so the Line text reads as one column
+    ' Light grid lines; vertical lines from IO-Code onwards, none in the F:G spacer
     With grid.Borders(xlInsideHorizontal)
         .LineStyle = xlContinuous
         .Color = HexColor("D5DDD9")
@@ -1318,6 +1328,63 @@ Private Sub FormatGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long
         .LineStyle = xlContinuous
         .Color = HexColor("A9B6B0")
     End With
+    If firstC - 1 > c0 + OFF_BUDGET + 1 Then
+        ws.Range(ws.Cells(r0, c0 + OFF_BUDGET + 1), ws.Cells(lastRow, firstC - 1)).Borders(xlInsideVertical).LineStyle = xlNone
+    End If
+End Sub
+
+' Line labels: merged across B:C on each line row and wrapped. Excel can't
+' autofit the height of a merged cell, so the labels are copied to a helper
+' column of the same width past the grid, the rows are autofitted there, and
+' the helper is cleared. Rows are never made shorter than the standard height.
+Private Sub FitLabels(ByVal ws As Worksheet, ByVal c0 As Long, ByVal lastC As Long, _
+                      ByRef shown() As Boolean, ByRef lf() As Long, ByRef ll() As Long)
+    Dim b As Long, c As Long, r As Long, hc As Long, w As Double, oldW As Double, used As Range
+    hc = lastC + 2
+    oldW = ws.Columns(hc).ColumnWidth
+    For c = c0 To c0 + OFF_IO - 1
+        w = w + ws.Columns(c).ColumnWidth
+    Next c
+    If w > 255 Then w = 255
+    ws.Columns(hc).ColumnWidth = w
+    For b = 1 To 5
+        If shown(b) And ll(b) >= lf(b) Then
+            With ws.Range(ws.Cells(lf(b), hc), ws.Cells(ll(b), hc))
+                .NumberFormat = "@"
+                .Font.Size = 10
+                .WrapText = True
+                .Value = ws.Range(ws.Cells(lf(b), c0), ws.Cells(ll(b), c0)).Value
+                If used Is Nothing Then Set used = .Cells Else Set used = Union(used, .Cells)
+            End With
+            With ws.Range(ws.Cells(lf(b), c0), ws.Cells(ll(b), c0 + OFF_IO - 1))
+                .Merge Across:=True
+                .WrapText = True
+                .HorizontalAlignment = xlLeft
+                .VerticalAlignment = xlCenter
+            End With
+            ws.Range(ws.Rows(lf(b)), ws.Rows(ll(b))).AutoFit
+            For r = lf(b) To ll(b)
+                If ws.Rows(r).RowHeight < ws.StandardHeight Then ws.Rows(r).RowHeight = ws.StandardHeight
+            Next r
+        End If
+    Next b
+    If Not used Is Nothing Then used.Clear
+    ws.Columns(hc).ColumnWidth = oldW
+End Sub
+
+' Rows TOP_FIRST_ROW:TOP_LAST_ROW (selector, KPI cards, buttons) are grouped so
+' they collapse with the +/- beside row 1 and the timeline gets more room.
+' ClearGrid clears the whole outline, so this runs on every build; the rows
+' are left expanded. The buttons are set to move and size with their cells so
+' they hide with the rows instead of floating over the timeline. Frozen panes
+' are not touched.
+Private Sub GroupTopRows(ByVal ws As Worksheet)
+    Dim shp As Shape
+    ws.Outline.SummaryRow = xlSummaryAbove
+    ws.Range(ws.Rows(TOP_FIRST_ROW), ws.Rows(TOP_LAST_ROW)).Group
+    For Each shp In ws.Shapes
+        If Left$(shp.Name, 6) = "btnTL_" Then shp.Placement = xlMoveAndSize
+    Next shp
 End Sub
 
 Private Function MonthCells(ByVal ws As Worksheet, ByVal r As Long, ByVal firstC As Long) As Range
@@ -1368,7 +1435,8 @@ Private Sub AddNote(ByVal cell As Range, ByVal noteText As String)
 End Sub
 
 ' Clears everything from TL_Anchor's row down: values, formats, merges,
-' notes, validation, links and the column outline (spec 5.1).
+' notes, validation, links and the whole outline (spec 5.1). GroupTopRows
+' puts the row group back after the build.
 Private Sub ClearGrid(ByVal ws As Worksheet, ByVal r0 As Long, ByVal c0 As Long)
     Dim lastRow As Long, lastCol As Long, rng As Range
     With ws.UsedRange

@@ -26,11 +26,12 @@ Detailed reference moved out of `CLAUDE.md` on 12 Oct 2026 so that `CLAUDE.md` s
   4. Build the grid.
   5. Load the saved projections.
   6. Write "Dashboard loaded by <user> at <time>" beside the selector.
-- **Columns:** Line | IO·Code | Budget | months with a quarter total after each quarter | all FY totals at the far right | Project Total.
+- **Columns:** Line (B:C, wrapped) | IO·Code (D) | Budget (E) | spacer (F:G) | months from H with a quarter total after each quarter | all FY totals at the far right | Project Total.
   - Quarters can be collapsed with Excel's outline, and each quarter number has a fixed colour.
   - Quarters at the start and end of the project are partial.
   - On the Calendar Year basis, CY totals replace the FY totals.
-  - There's no Budget-remaining column and no frozen panes.
+  - There's no Budget-remaining column. The macro doesn't touch frozen panes; the user's own panes are kept.
+  - Rows 2–19 are grouped on every build (collapse with the +/− beside row 1).
 - **Blocks:** MP, OM, EQ, CO, OTHER. OTHER holds every other budget code (AL, OT, B, C, D); a blank code shows as `(no code)`.
 - **Non-MP rows:**
   - One row per IO + category + normalised description, showing the net budget. Lines that net to $0 are hidden.
@@ -79,7 +80,7 @@ Detailed reference moved out of `CLAUDE.md` on 12 Oct 2026 so that `CLAUDE.md` s
 
 ## 5. Acceptance checkpoints (HoW2.0 - 3D Gait)
 
-Main IO `TF25HIP134`; manpower IO `TF25HIP134MP`; Revised Approved Budget **$250,000.00**; Actual to Date **$68,563.67** (MP **$24,367.83**, OM **$44,195.84**); Total Monthly FTE **9.0**; RA projection **$62,250.00** (matches the source RA Estimate Utilisation); Rate matched on every relevant row. The cross-project test uses HoW2.0 - Esko Combo. The timeline adds 16 acceptance tests (spec §13).
+Main IO `TF25HIP134`; manpower IO `TF25HIP134MP`; Revised Approved Budget **$250,000.00**; Actual to Date **$68,563.67** (MP **$24,367.83**, OM **$44,195.84**); Total Monthly FTE **9.0**; RA projection **$62,250.00** (matches the source RA Estimate Utilisation); Rate matched on every relevant row. The cross-project test uses HoW2.0 - Esko Combo. The timeline adds 18 acceptance tests (spec §13).
 
 ## 6. Working techniques
 

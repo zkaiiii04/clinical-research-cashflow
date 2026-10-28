@@ -66,6 +66,7 @@ Detailed reference moved out of `CLAUDE.md` on 12 Oct 2026 so that `CLAUDE.md` s
 - Rate Status is "Rate not found" when no rate matches; Power Query handles this.
 - Actuals carry only Expense Category + IO + Posting Month + the SAP cost-element text (`Sal -  Ald Health`, `CPF - Allied Health`, …). Nothing links an actual to a budget line. RA, therapist and nursing payroll are all MP (nursing is MP in SOA).
 - Some projects have payroll actuals coded **OM**, e.g. Esko Combo; this is why the charge-to table exists.
+- **Manpower lines on a non-MP IO land in MP (open, 28 Oct 2026).** Esko Combo's manpower service fee is on `TF25HIP136OM` in the IREx source (correct), but the macro puts every manpower line in MP unless `tblManpowerChargeTo` maps it, and charge-to doesn't apply to "Rate not found" lines. Workaround: a charge-to row for `TF25HIP136OM` → OM. Fix options: `docs/incidents/2026-10-28-esko-combo-om-service-fee-in-mp.md`.
 - Budget descriptions repeat as signed adjustments, e.g. RA 64,200 + 8,400 and Research Fellow 39,000 − 39,000, and contain typos such as "Patient Reimbursemnt".
 - **Project dates:** `tblProjectIOCatalogue` / `tblSelectedProjectMapping` Project Start/End are the min/max of the **SOA budget LOA dates**, not the project dates. The authoritative project dates are in `qProjects_SelectedTest` (IREx). For tDCS they differ (SOA 31 Dec 2026, project 30 Sep 2027). The manpower `Tag Start`/`Tag End` are each person's LOA.
 - Catalogue Budget Code Types: MP, OM, EQ, CO, AL, OT, B, C, D, and blank.

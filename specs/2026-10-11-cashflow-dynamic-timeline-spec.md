@@ -315,3 +315,4 @@ The user accepted the recommendations for items 1 and 2 ('noted on the 2 decisio
 
 - MP parent/child view: budget lines (RA, Therapist, …) with manpower lines nested under them, using an admin mapping table. The settings sheet is designed so this can be added later.
 - Promoting the selected-test queries over `tblBudget` / `tblActuals` / `tblProjects` / `tblManpower`.
+- Manpower lines whose source IO isn't an MP IO (e.g. the Esko Combo service fee on `TF25HIP136OM`) currently default to MP (§5.3, §7). Options to route them, and to let charge-to cover "Rate not found" lines, are in `docs/incidents/2026-10-28-esko-combo-om-service-fee-in-mp.md`. Not decided.

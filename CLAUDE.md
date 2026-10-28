@@ -14,6 +14,7 @@ Project instructions for Claude. This file is a **directory, plus the goals and 
 - **Baseline:** `Clinical_Research_Cash_Flow_SharePoint_PQ_Ready_v0.8.xlsm` (never modify). **Working copy:** `..._v0.9_working.xlsm`, **in UAT** in desktop Excel (spec v1.0.7).
 - The user's copy has the selector in **row 5** (VBA `SEL_*` constants). The build script still writes row 6, so align it before any rebuild. The release zip has **no workbook** for now (modules and docs only).
 - **Done and tested in Excel by the user (12 Oct):** rows 2–19 grouped on every build (UAT 17) and the **Remarks** column after Project Total, saved per project in `ProjectionStore!W:AD` (UAT 18). Stage 1 (narrower Line column) was **withdrawn by the user** (empty F:G). Future Actual/Variance stay blank (decided). Open: UAT 1–16 results, then promotion.
+- **Noted 28 Oct (open):** Esko Combo's manpower service fee on `TF25HIP136OM` shows in MP; workaround is a charge-to row, fix not chosen (`docs/incidents/2026-10-28-…`).
 - **Next:** the latest handover in `handovers/README.md`.
 
 ## Directory: every file, and when to read it
@@ -34,6 +35,7 @@ Read only what the task needs; don't scan the whole repo.
 | `docs/Clinical_Research_Cash_Flow_Build.md` | Build status log | Recording what was built or changed |
 | `docs/incidents/2026-10-11-v0.9-querytable9-repair.md` | Incident (closed): Excel repair from an XML rename | Renaming anything, packaging, repair prompts |
 | `docs/incidents/2026-10-11-v0.9-project-end-date.md` | Defect (closed): timeline used SOA LOA dates | Project dates, timeline length |
+| `docs/incidents/2026-10-28-esko-combo-om-service-fee-in-mp.md` | Defect (open): Esko Combo OM manpower service fee shows in MP; workaround and fix options | Manpower routing, charge-to, non-MP manpower IOs |
 | `docs/v0.9_Install_and_User_Guide.md` / `.docx` | User install and usage guide | Changing install steps or user-facing behaviour |
 | `tests/UAT_test_script.md` | 18 acceptance tests for desktop Excel | UAT results, adding tests |
 | `tests/grid_model.py` | Python port of the grid; LibreOffice recalc; 44 checks | Any grid-logic change (keep in step with `modTimeline`) |
